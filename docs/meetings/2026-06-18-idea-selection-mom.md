@@ -3,7 +3,7 @@
 **Date:** 2026-06-18  
 **Module:** B9IS103 — Secure Communications / Collaboration System  
 **Purpose:** Review four project proposals for lecturer selection  
-**Attendees:** _(add names)_
+**Attendees:** Mahendra, Sireesha, Oree, Sudheer
 
 ---
 
@@ -48,7 +48,7 @@ _(Add notes from Zoom call)_
 |-------|------|-----|
 | | Push proposals to GitHub | |
 | | Share repo link with lecturer | |
-| | Fill team names in README | |
+| Sireesha | Fill team names in README | Done |
 | | Schedule follow-up after lecturer feedback | |
 
 ---

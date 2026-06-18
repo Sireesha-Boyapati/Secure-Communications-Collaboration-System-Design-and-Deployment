@@ -68,10 +68,10 @@ Use this table in your presentation or lecturer meeting to compare all four prop
 
 | Member | Strengths | Best fit idea |
 |--------|-----------|---------------|
-| Member 1 | | |
-| Member 2 | | |
-| Member 3 | | |
-| Member 4 | | |
+| Mahendra | | |
+| Sireesha | | |
+| Oree | | |
+| Sudheer | | |
 
 ---
 
