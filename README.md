@@ -12,10 +12,10 @@
 
 | Name | Role (TBD after idea selection) |
 |------|----------------------------------|
-| Member 1 | | Mahendra 
-| Member 2 | | Oree
-| Member 3 | | Sireesha
-| Member 4 | | Sudheer
+| Member 1 | | Mahendra |
+| Member 2 | | Oree     |
+| Member 3 | | Sireesha |
+| Member 4 | | Sudheer  |
 
 ---
 
