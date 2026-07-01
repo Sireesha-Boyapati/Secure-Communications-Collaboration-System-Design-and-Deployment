@@ -12,16 +12,16 @@
 
 | Name | Role (TBD after idea selection) |
 |------|----------------------------------|
-| Member 1 | |
-| Member 2 | |
-| Member 3 | |
-| Member 4 | |
+| Member 1 | | Mahendra 
+| Member 2 | | Oree
+| Member 3 | | Sireesha
+| Member 4 | | Sudheer
 
 ---
 
 ## Status
 
-We are at the **idea selection** stage. Four candidate projects are documented for lecturer review.
+We are at the **idea selection** stage.
 
 | Document | Purpose |
 |----------|---------|
@@ -46,7 +46,7 @@ Every proposal below satisfies the core brief:
 
 ---
 
-## Quick summary of candidate ideas
+## Quick summary of ideas
 
 | # | Project | One-line description | Best for |
 |---|---------|----------------------|----------|
