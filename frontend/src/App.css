@@ -1,0 +1,124 @@
+.app, .chat-room {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.25rem;
+  color: #1d4ed8;
+}
+
+.join-form {
+  display: grid;
+  gap: 1rem;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.join-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.join-form input {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover { background: #1d4ed8; }
+
+.btn-secondary {
+  background: #64748b;
+}
+
+.demo-note {
+  margin-top: 1.5rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.fingerprint-box, .peers-box, .error-box {
+  background: white;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.error-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.peer-chip {
+  display: inline-block;
+  background: #e0e7ff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  margin-right: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.message-list {
+  list-style: none;
+  padding: 0;
+  min-height: 260px;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.message-list li {
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.message-list li.mine { background: #dbeafe; }
+.message-list li.system { background: #f1f5f9; font-style: italic; }
+
+.message-list .meta {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.composer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.composer input {
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
