@@ -1,6 +1,6 @@
 # StudySafe — Folder Structure
 
-**Project:** StudySafe (B9IS103)
+**Project:** StudySafe (B9IS103) — Production skeleton
 
 ---
 
@@ -9,143 +9,117 @@
 ```
 Secure-Communications-Collaboration-System-Design-and-Deployment/
 │
-├── README.md                    # Project overview, run instructions
-├── ATTRIBUTION.md               # External resources & AI use
-├── .gitignore
+├── README.md                         # Full project documentation (17 sections)
+├── ATTRIBUTION.md                    # AI use, libraries, team contributions
+├── docker-compose.yml                # MongoDB + backend + frontend
+├── .dockerignore
+├── .github/workflows/ci.yml          # GitHub Actions CI
 │
-├── backend/                     # Python FastAPI server
-│   ├── README.md
+├── backend/
+│   ├── Dockerfile
 │   ├── requirements.txt
+│   ├── requirements-dev.txt
+│   ├── pytest.ini
 │   ├── .env.example
+│   ├── tests/
+│   │   ├── conftest.py
+│   │   ├── test_health.py
+│   │   └── test_auth.py
 │   └── app/
-│       ├── __init__.py
-│       ├── main.py              # FastAPI app entry, CORS, routers
-│       ├── config.py            # Settings from environment
-│       ├── models/
-│       │   ├── __init__.py
-│       │   └── schemas.py       # Pydantic request/response models
+│       ├── main.py                   # FastAPI app, WebSocket, lifespan
+│       ├── config.py                 # pydantic-settings
+│       ├── core/
+│       │   ├── logging.py
+│       │   └── exceptions.py
+│       ├── auth/
+│       │   ├── jwt.py
+│       │   └── dependencies.py
+│       ├── db/
+│       │   ├── client.py
+│       │   └── repositories/
+│       │       ├── users.py
+│       │       ├── otp.py
+│       │       ├── rooms.py
+│       │       └── messages.py
+│       ├── services/
+│       │   ├── auth_service.py
+│       │   ├── room_service.py
+│       │   ├── message_service.py
+│       │   └── email_service.py
 │       ├── routers/
-│       │   ├── __init__.py
-│       │   ├── health.py        # GET /health
-│       │   └── rooms.py         # Public key registry REST API
+│       │   ├── health.py
+│       │   ├── auth.py
+│       │   ├── rooms.py
+│       │   └── messages.py
+│       ├── security/
+│       │   ├── rate_limit.py
+│       │   ├── honeypot.py
+│       │   └── middleware.py
 │       ├── websocket/
-│       │   ├── __init__.py
-│       │   └── manager.py       # WebSocket connection manager
-│       ├── auth/                # JWT + OTP (Phase 2)
-│       │   └── .gitkeep
-│       ├── security/            # Honeypot decoys, rate limits (Phase 2)
-│       │   └── .gitkeep
-│       └── db/                  # MongoDB Motor client (Phase 2)
-│           └── .gitkeep
+│       │   └── manager.py
+│       └── models/
+│           └── schemas.py
 │
-├── frontend/                    # React + TypeScript client
-│   ├── README.md
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── .env.example
 │   ├── package.json
-│   ├── tsconfig.json
 │   ├── vite.config.ts
-│   ├── index.html
 │   └── src/
-│       ├── main.tsx             # React entry
-│       ├── App.tsx              # Root layout
-│       ├── App.css
-│       ├── index.css
-│       ├── lib/
-│       │   ├── crypto.ts        # Web Crypto — ECDH, AES-GCM, fingerprint
-│       │   └── websocket.ts     # WebSocket client helper
+│       ├── api/                      # REST client (auth, rooms)
 │       ├── components/
-│       │   └── ChatRoom.tsx     # Chat UI + encryption flow
-│       └── types/
-│           └── index.ts         # Shared TypeScript types
+│       │   ├── chat/ChatRoom.tsx
+│       │   └── layout/ProtectedRoute.tsx
+│       ├── context/AuthContext.tsx
+│       ├── pages/
+│       │   ├── LoginPage.tsx
+│       │   ├── DashboardPage.tsx
+│       │   └── ChatPage.tsx
+│       ├── lib/
+│       │   ├── crypto.ts
+│       │   ├── crypto.test.ts
+│       │   └── websocket.ts
+│       └── types/index.ts
 │
-├── deploy/                      # AWS deployment notes/scripts
-│   ├── README.md
-│   └── .gitkeep
+├── deploy/
+│   └── README.md                     # AWS deployment notes
 │
 └── docs/
-    ├── STUDYSAFE.md             # Selected project definition
-    ├── TECH-STACK.md            # Full technology stack
-    ├── WHY-TECH-CHOICES.md      # Rationale for each choice
-    ├── FOLDER-STRUCTURE.md      # This file
-    ├── SECURITY-PLAN.md         # Threat model + honeypot design
-    ├── COMMIT-PLAN.md           # Git commit schedule
-    ├── PROJECT-PROPOSALS.md     # Original 4 ideas
-    ├── COMPARISON-MATRIX.md
-    └── meetings/                # Zoom MoM notes
+    ├── STUDYSAFE.md
+    ├── TECH-STACK.md
+    ├── FOLDER-STRUCTURE.md           # This file
+    ├── WHY-TECH-CHOICES.md
+    ├── SECURITY-PLAN.md
+    ├── AI-CHAT-LOGS.md               # 12 AI chat session links
+    ├── PROJECT-PROPOSALS.md
+    └── meetings/
 ```
 
 ---
 
-## Backend module responsibilities
+## Layer responsibilities
 
-| Path | Responsibility |
-|------|----------------|
-| `main.py` | App factory, middleware, mount routers + WebSocket |
-| `config.py` | `CORS_ORIGINS`, `JWT_SECRET`, `MONGODB_URI` from env |
-| `routers/health.py` | Liveness check for AWS / demo |
-| `routers/rooms.py` | Register/fetch public keys per room |
-| `websocket/manager.py` | Join room, broadcast ciphertext to peers |
-| `auth/` | Email OTP, JWT issue/verify (Phase 2) |
-| `db/` | MongoDB collections (Phase 2) |
-| `security/` | Honeypot endpoints, rate limiting (Phase 2) |
-
----
-
-## Frontend module responsibilities
-
-| Path | Responsibility |
-|------|----------------|
-| `lib/crypto.ts` | Generate keys, ECDH, encrypt/decrypt, fingerprint |
-| `lib/websocket.ts` | Connect, send, receive JSON frames |
-| `components/ChatRoom.tsx` | Username, room, message list, input |
-| `types/index.ts` | `Message`, `PublicKey`, `ChatEvent` interfaces |
+| Layer | Path | Responsibility |
+|-------|------|----------------|
+| Routers | `backend/app/routers/` | HTTP entry, Pydantic validation, auth deps |
+| Services | `backend/app/services/` | Business logic |
+| Repositories | `backend/app/db/repositories/` | MongoDB CRUD |
+| Auth | `backend/app/auth/` | JWT create/verify, `get_current_user` |
+| Security | `backend/app/security/` | Rate limits, honeypot, headers |
+| Frontend API | `frontend/src/api/` | Typed REST calls + error handling |
+| Frontend pages | `frontend/src/pages/` | Login, dashboard, chat flows |
 
 ---
 
-## MongoDB collections (Phase 2)
+## MongoDB collections
 
-### `users`
-```json
-{
-  "_id": "ObjectId",
-  "email": "alice@college.ie",
-  "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "...", "y": "..." },
-  "fingerprint": "a1b2c3d4",
-  "verified": true,
-  "createdAt": "ISODate"
-}
-```
+| Collection | Contents |
+|------------|----------|
+| `users` | email, display_name, verified |
+| `otp_codes` | OTP with TTL auto-expire |
+| `rooms` | name, invite_code, member_ids |
+| `room_keys` | public JWK + fingerprint per user per room |
+| `messages` | ciphertext_payload only |
 
-### `rooms`
-```json
-{
-  "_id": "ObjectId",
-  "name": "B9IS103-Team",
-  "inviteCode": "XK7M2P",
-  "memberIds": ["ObjectId"],
-  "createdBy": "ObjectId"
-}
-```
-
-### `messages`
-```json
-{
-  "_id": "ObjectId",
-  "roomId": "ObjectId",
-  "fromUserId": "ObjectId",
-  "fromUsername": "Alice",
-  "ciphertext": "base64...",
-  "iv": "base64...",
-  "createdAt": "ISODate"
-}
-```
-
----
-
-## Data flow
-
-```
-Browser (encrypt) → POST/WS → FastAPI → in-memory / MongoDB (ciphertext)
-Browser (decrypt) ← WS ← FastAPI ← other clients' ciphertext
-```
-
-Private keys **never** enter `backend/` or `docs/`.
+Private keys **never** enter `backend/` or MongoDB.

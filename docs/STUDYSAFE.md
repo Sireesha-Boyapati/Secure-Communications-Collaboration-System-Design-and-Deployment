@@ -78,4 +78,3 @@ A self-hosted relay that **never sees plaintext**:
 - [WHY-TECH-CHOICES.md](WHY-TECH-CHOICES.md)
 - [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md)
 - [SECURITY-PLAN.md](SECURITY-PLAN.md)
-- [COMMIT-PLAN.md](COMMIT-PLAN.md)
