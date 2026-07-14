@@ -1,36 +1,94 @@
-"""Room public-key registry — in-memory for Phase 1 demo; MongoDB in Phase 2."""
+"""Room management and public-key registry routes."""
 
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
 
-from app.models.schemas import PublicKeyListResponse, PublicKeyRegister, PublicKeyEntry
+from fastapi import APIRouter, Depends
+
+from app.auth.dependencies import get_current_user
+from app.core.exceptions import StudySafeError, http_error
+from app.models.schemas import (
+    PublicKeyEntry,
+    PublicKeyListResponse,
+    PublicKeyRegister,
+    RoomCreate,
+    RoomJoin,
+    RoomResponse,
+)
+from app.services.room_service import room_service
 
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
-# room_id -> username -> key entry (demo only — replace with MongoDB)
-_room_keys: dict[str, dict[str, PublicKeyEntry]] = {}
+
+@router.post("", response_model=RoomResponse, status_code=201)
+async def create_room(
+    payload: RoomCreate,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> RoomResponse:
+    try:
+        room = await room_service.create_room(user["id"], payload.name)
+        return RoomResponse(**room)
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
 
 
-@router.post("/{room_id}/keys", status_code=201)
-async def register_public_key(room_id: str, payload: PublicKeyRegister) -> PublicKeyEntry:
-    room = _room_keys.setdefault(room_id, {})
-    entry = PublicKeyEntry(
-        username=payload.username,
-        public_key_jwk=payload.public_key_jwk,
-        fingerprint=payload.fingerprint,
-    )
-    room[payload.username] = entry
-    return entry
+@router.post("/join", response_model=RoomResponse)
+async def join_room(
+    payload: RoomJoin,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> RoomResponse:
+    try:
+        room = await room_service.join_room(user["id"], payload.invite_code)
+        return RoomResponse(**room)
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/mine", response_model=list[RoomResponse])
+async def list_my_rooms(
+    user: Annotated[dict, Depends(get_current_user)],
+) -> list[RoomResponse]:
+    rooms = await room_service.list_user_rooms(user["id"])
+    return [RoomResponse(**r) for r in rooms]
+
+
+@router.get("/{room_id}", response_model=RoomResponse)
+async def get_room(
+    room_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> RoomResponse:
+    try:
+        room = await room_service.get_room(user["id"], room_id)
+        return RoomResponse(**room)
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/{room_id}/keys", response_model=PublicKeyEntry, status_code=201)
+async def register_public_key(
+    room_id: str,
+    payload: PublicKeyRegister,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> PublicKeyEntry:
+    try:
+        entry = await room_service.register_public_key(
+            user["id"],
+            room_id,
+            payload.username,
+            payload.public_key_jwk,
+            payload.fingerprint,
+        )
+        return PublicKeyEntry(**entry)
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
 
 
 @router.get("/{room_id}/keys", response_model=PublicKeyListResponse)
-async def list_public_keys(room_id: str) -> PublicKeyListResponse:
-    room = _room_keys.get(room_id, {})
-    return PublicKeyListResponse(room_id=room_id, keys=list(room.values()))
-
-
-@router.get("/{room_id}/keys/{username}", response_model=PublicKeyEntry)
-async def get_public_key(room_id: str, username: str) -> PublicKeyEntry:
-    room = _room_keys.get(room_id, {})
-    if username not in room:
-        raise HTTPException(status_code=404, detail="User key not found in room")
-    return room[username]
+async def list_public_keys(
+    room_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> PublicKeyListResponse:
+    try:
+        keys = await room_service.list_public_keys(user["id"], room_id)
+        return PublicKeyListResponse(room_id=room_id, keys=[PublicKeyEntry(**k) for k in keys])
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
