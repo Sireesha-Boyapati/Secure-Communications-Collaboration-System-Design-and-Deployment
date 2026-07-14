@@ -1,0 +1,22 @@
+# StudySafe — All repository code and docs require review from team owners.
+# Update GitHub usernames for Oree and Sudheer before enabling branch protection.
+
+# Default owners — all files
+*   @Sireesha-Boyapati @MShabade
+
+# Backend — Mahendra primary
+/backend/   @MShabade @Sireesha-Boyapati
+
+# Frontend — Sireesha primary
+/frontend/  @Sireesha-Boyapati @MShabade
+
+# Security & deployment docs — full team review
+/docs/SECURITY-PLAN.md     @Sireesha-Boyapati @MShabade
+/docs/REPO-SECURITY.md     @Sireesha-Boyapati @MShabade
+/deploy/                    @Sireesha-Boyapati @MShabade
+/.github/                   @Sireesha-Boyapati @MShabade
+
+# Crypto — security-critical, all 4 should review (add Oree + Sudheer usernames when known)
+/frontend/src/lib/crypto.ts  @Sireesha-Boyapati @MShabade
+/backend/app/security/       @Sireesha-Boyapati @MShabade
+/backend/app/auth/           @Sireesha-Boyapati @MShabade
