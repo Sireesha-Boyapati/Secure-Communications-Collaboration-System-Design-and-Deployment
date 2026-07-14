@@ -1,3 +1,23 @@
+export interface User {
+  id: string;
+  email: string;
+  display_name: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  invite_code: string;
+  member_count: number;
+  created_at: string;
+}
+
 export interface PublicKeyEntry {
   username: string;
   public_key_jwk: JsonWebKey;
@@ -5,14 +25,10 @@ export interface PublicKeyEntry {
 }
 
 export interface EncryptedPayload {
-  type: "encrypted_message";
+  type: string;
   from: string;
   timestamp: string;
-  recipients: Array<{
-    to: string;
-    ciphertext: string;
-    iv: string;
-  }>;
+  recipients: Array<{ to: string; ciphertext: string; iv: string }>;
 }
 
 export interface ChatMessage {
