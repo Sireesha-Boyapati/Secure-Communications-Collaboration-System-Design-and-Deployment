@@ -1,7 +1,5 @@
 import { getToken } from "../api/client";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
-
 export function wsUrl(roomId: string): string {
   const token = getToken();
   const base = import.meta.env.VITE_WS_URL;
