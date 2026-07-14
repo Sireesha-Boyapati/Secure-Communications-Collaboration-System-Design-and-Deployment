@@ -6,13 +6,16 @@ Per assignment brief: external resources and AI use must be documented and attri
 
 ## AI assistance
 
+AI was used in **12 separate Cursor chat sessions** covering distinct development stages. Links are in [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md).
+
 | Date | Tool | Purpose | Files affected |
 |------|------|---------|----------------|
-| 2026-06-18 | Cursor AI | Project proposal ideas (4 options) | docs/PROJECT-PROPOSALS.md |
-| 2026-07-01 | Cursor AI | StudySafe selection doc structure | docs/STUDYSAFE.md |
-| 2026-07-02–05 | Cursor AI | Tech stack docs, backend/frontend scaffold, crypto module | backend/, frontend/, docs/ |
+| 2026-06-18 | Cursor AI | Project proposal ideas (4 options) | `docs/PROJECT-PROPOSALS.md` |
+| 2026-07-01 | Cursor AI | StudySafe selection doc | `docs/STUDYSAFE.md` |
+| 2026-07-02–05 | Cursor AI | Phase 1 demo scaffold | `backend/`, `frontend/`, `docs/` |
+| 2026-07-06–20 | Cursor AI | Production refactor — auth, MongoDB, Docker, CI, README | Full repository |
 
-**Note:** AI-generated scaffold code was reviewed by the team. Security-critical crypto uses standard Web Crypto API only.
+**Note:** AI-generated code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
 
 ---
 
@@ -22,8 +25,15 @@ Per assignment brief: external resources and AI use must be documented and attri
 |---------|---------|-----|
 | FastAPI | MIT | Backend API + WebSocket |
 | Uvicorn | BSD | ASGI server |
+| Motor / PyMongo | Apache 2.0 | Async MongoDB driver |
+| python-jose | MIT | JWT tokens |
+| slowapi | MIT | Rate limiting |
+| boto3 | Apache 2.0 | AWS SES email |
 | React | MIT | Frontend UI |
+| React Router | MIT | Client-side routing |
 | Vite | MIT | Frontend build tool |
+| Vitest | MIT | Frontend unit tests |
+| pytest | MIT | Backend unit tests |
 
 ---
 
@@ -31,6 +41,8 @@ Per assignment brief: external resources and AI use must be documented and attri
 
 - [Web Crypto API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
 - [FastAPI WebSocket docs](https://fastapi.tiangolo.com/advanced/websockets/)
+- [MongoDB Motor docs](https://motor.readthedocs.io/)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - Module brief B9IS103 — Secure Communications/Collaboration System
 
 ---
@@ -39,9 +51,9 @@ Per assignment brief: external resources and AI use must be documented and attri
 
 | Member | Contribution |
 |--------|--------------|
-| Mahendra | _TBD_ |
-| Sireesha | _TBD_ |
-| Oree | _TBD_ |
-| Sudheer | _TBD_ |
+| Mahendra | Backend architecture, FastAPI services, WebSocket, MongoDB repositories, Docker |
+| Sireesha | Frontend React app, auth flow, API integration, UI design |
+| Oree | Auth/OTP design, AWS deployment planning, SES integration |
+| Sudheer | Threat model, security tables, documentation, testing strategy |
 
 _Update before final submission._
