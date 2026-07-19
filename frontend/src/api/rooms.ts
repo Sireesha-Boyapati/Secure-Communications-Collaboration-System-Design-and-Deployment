@@ -48,3 +48,7 @@ export async function fetchMessageHistory(
 ): Promise<{ messages: Array<{ ciphertext_payload: string; from_username: string }> }> {
   return apiFetch(`/api/rooms/${encodeURIComponent(roomId)}/messages`);
 }
+
+export async function fetchOnlineUsers(roomId: string): Promise<{ online: string[]; count: number }> {
+  return apiFetch(`/api/rooms/${encodeURIComponent(roomId)}/online`);
+}
