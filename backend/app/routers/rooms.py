@@ -15,6 +15,7 @@ from app.models.schemas import (
     RoomResponse,
 )
 from app.services.room_service import room_service
+from app.websocket.manager import manager
 
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
@@ -90,5 +91,18 @@ async def list_public_keys(
     try:
         keys = await room_service.list_public_keys(user["id"], room_id)
         return PublicKeyListResponse(room_id=room_id, keys=[PublicKeyEntry(**k) for k in keys])
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
+
+
+@router.get("/{room_id}/online")
+async def get_online_users(
+    room_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> dict:
+    try:
+        await room_service.get_room(user["id"], room_id)
+        online = manager.online_users(room_id)
+        return {"room_id": room_id, "online": online, "count": len(online)}
     except StudySafeError as exc:
         raise http_error(exc) from exc
