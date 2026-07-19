@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchRoomKeys, registerPublicKey } from "../../api/rooms";
+import { fetchMessageHistory, fetchRoomKeys, registerPublicKey } from "../../api/rooms";
 import { decryptFromSender, encryptForRecipient, generateKeyPair } from "../../lib/crypto";
 import { connectWebSocket } from "../../lib/websocket";
 import type { ChatMessage, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
@@ -25,6 +25,78 @@ export default function ChatRoom({ roomId, username }: Props) {
     setPeers(list.filter((p) => p.username !== username));
     peerMapRef.current = new Map(list.map((p) => [p.username, p]));
   }, [roomId, username]);
+
+  const decryptPayload = useCallback(
+    async (
+      payload: EncryptedPayload,
+      myKeys: KeyPairBundle,
+      peerMap: Map<string, PublicKeyEntry>,
+    ): Promise<ChatMessage | null> => {
+      if (payload.from === username) {
+        return {
+          id: crypto.randomUUID(),
+          from: username,
+          text: "[your encrypted message — sent to room]",
+          timestamp: payload.timestamp,
+          encrypted: true,
+        };
+      }
+
+      const sender = peerMap.get(payload.from);
+      if (!sender) return null;
+
+      const mine = payload.recipients.find((r) => r.to === username);
+      if (!mine) return null;
+
+      try {
+        const text = await decryptFromSender(
+          mine.ciphertext,
+          mine.iv,
+          myKeys.privateKey,
+          sender.public_key_jwk,
+        );
+        return {
+          id: crypto.randomUUID(),
+          from: payload.from,
+          text,
+          timestamp: payload.timestamp,
+          encrypted: true,
+        };
+      } catch {
+        return {
+          id: crypto.randomUUID(),
+          from: payload.from,
+          text: "[encrypted history — verify key fingerprints]",
+          timestamp: payload.timestamp,
+          encrypted: true,
+        };
+      }
+    },
+    [username],
+  );
+
+  const loadHistory = useCallback(
+    async (myKeys: KeyPairBundle) => {
+      const data = await fetchMessageHistory(roomId);
+      const peerMap = peerMapRef.current;
+      const history: ChatMessage[] = [];
+
+      for (const item of data.messages ?? []) {
+        try {
+          const payload = JSON.parse(item.ciphertext_payload) as EncryptedPayload;
+          const msg = await decryptPayload(payload, myKeys, peerMap);
+          if (msg) history.push(msg);
+        } catch {
+          // skip malformed history entries
+        }
+      }
+
+      if (history.length) {
+        setMessages((prev) => [...history, ...prev]);
+      }
+    },
+    [roomId, decryptPayload],
+  );
 
   const handleIncoming = useCallback(
     async (raw: unknown, myKeys: KeyPairBundle) => {
@@ -103,6 +175,7 @@ export default function ChatRoom({ roomId, username }: Props) {
 
         await registerPublicKey(roomId, username, keyBundle.publicJwk, keyBundle.fingerprint);
         await loadPeers();
+        await loadHistory(keyBundle);
 
         const ws = connectWebSocket(roomId, (msg) => {
           void handleIncoming(msg, keyBundle);
@@ -117,7 +190,7 @@ export default function ChatRoom({ roomId, username }: Props) {
       cancelled = true;
       wsRef.current?.close();
     };
-  }, [roomId, username, handleIncoming, loadPeers]);
+  }, [roomId, username, handleIncoming, loadPeers, loadHistory]);
 
   const sendMessage = async () => {
     if (!input.trim() || !keys || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
