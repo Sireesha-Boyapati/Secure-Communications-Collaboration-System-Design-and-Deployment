@@ -1,4 +1,4 @@
-"""WebSocket connection manager — relays ciphertext JSON only."""
+"""WebSocket connection manager — realtime presence, typing, ciphertext relay."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 
 from fastapi import WebSocket
 
+from app.websocket import events
+
 
 @dataclass
 class ConnectionManager:
@@ -14,13 +16,23 @@ class ConnectionManager:
 
     rooms: dict[str, dict[str, WebSocket]] = field(default_factory=dict)
 
+    def online_users(self, room_id: str) -> list[str]:
+        return sorted(self.rooms.get(room_id, {}).keys())
+
+    async def _broadcast_presence(self, room_id: str) -> None:
+        await self.broadcast(
+            room_id,
+            {"type": events.PRESENCE, "online": self.online_users(room_id)},
+        )
+
     async def connect(self, room_id: str, username: str, websocket: WebSocket) -> None:
         await websocket.accept()
         self.rooms.setdefault(room_id, {})[username] = websocket
+        await self._broadcast_presence(room_id)
         await self.broadcast(
             room_id,
             {
-                "type": "system",
+                "type": events.SYSTEM,
                 "event": "join",
                 "username": username,
                 "message": f"{username} joined the room",
@@ -33,6 +45,20 @@ class ConnectionManager:
         room.pop(username, None)
         if not room:
             self.rooms.pop(room_id, None)
+
+    async def disconnect_and_notify(self, room_id: str, username: str) -> None:
+        self.disconnect(room_id, username)
+        if room_id in self.rooms:
+            await self._broadcast_presence(room_id)
+        await self.broadcast(
+            room_id,
+            {
+                "type": events.SYSTEM,
+                "event": "leave",
+                "username": username,
+                "message": f"{username} left the room",
+            },
+        )
 
     async def broadcast(self, room_id: str, payload: dict, exclude: str | None = None) -> None:
         room = self.rooms.get(room_id, {})
@@ -50,6 +76,13 @@ class ConnectionManager:
 
     async def send_personal(self, websocket: WebSocket, payload: dict) -> None:
         await websocket.send_text(json.dumps(payload))
+
+    async def relay_typing(self, room_id: str, username: str, is_typing: bool) -> None:
+        await self.broadcast(
+            room_id,
+            {"type": events.TYPING, "username": username, "is_typing": is_typing},
+            exclude=username,
+        )
 
 
 manager = ConnectionManager()
