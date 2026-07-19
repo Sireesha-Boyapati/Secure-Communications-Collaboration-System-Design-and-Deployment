@@ -61,6 +61,8 @@ This document maps every requirement from the assignment brief to implementation
 
 ---
 
+## How to read the evidence tables below
+
 | Column | Meaning |
 |--------|---------|
 | **Requirement** | What the brief asked for |
