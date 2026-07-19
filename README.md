@@ -1,17 +1,25 @@
 # StudySafe
 
-**Encrypted real-time collaboration for student teams** — B9IS103 Computer Systems Security 2026
+> **End-to-end encrypted realtime chat for student teams.**  
+> Messages are encrypted in the browser before they reach the server — the relay stores ciphertext only.
 
 [![CI](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/actions/workflows/ci.yml/badge.svg)](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/actions)
 
+`React 18` · `TypeScript` · `FastAPI` · `MongoDB` · `WebSocket` · `Web Crypto API` · `Docker` · `GitHub Actions`
+
+---
+
+### Links
+
 | | |
 |---|---|
-| **Module** | B9IS103 — Computer Systems Security 2026 |
-| **Assessment** | Secure Communications / Collaboration System Design and Deployment |
-| **Team** | Mahendra · Sireesha · Oree · Sudheer |
-| **Stack** | React · FastAPI · MongoDB · AWS |
-| **Repository** | [GitHub](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment) |
-| **Meetings (MoM, recordings)** | [DBS SharePoint — CA project security](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) |
+| **Live demo (local)** | http://localhost:5173 |
+| **API docs** | http://localhost:8000/docs |
+| **Demo walkthrough** | [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) |
+| **Team meetings (MoM & recordings)** | [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) |
+| **CA requirement traceability** | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) |
+
+**Team:** Mahendra · Sireesha · Oree · Sudheer · **Module:** B9IS103 Computer Systems Security
 
 ---
 
@@ -23,75 +31,39 @@ cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 
 cd frontend && npm run dev
 ```
 
-Open http://localhost:5173 · API docs http://localhost:8000/docs · Full walkthrough: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)
+Sign in at http://localhost:5173 — OTP appears in the backend terminal as `[DEV OTP] email=... code=...`.
 
 ---
 
-## 1. Project Overview
+## Features
 
-StudySafe is a self-hosted secure messaging platform for student project teams. Users authenticate with **email OTP**, join encrypted chat rooms via **invite codes**, and exchange messages that are **encrypted in the browser** before reaching the server.
+### Encrypted messaging
+- **E2E encryption** in the browser (ECDH P-256 + AES-256-GCM)
+- Key agreement **without meeting in person** — public keys on server, private keys local
+- **Key fingerprint** for out-of-band verification (Zoom / phone)
+- **Message history** — ciphertext in MongoDB, decrypted on client rejoin
 
-The backend is a **ciphertext relay** — it never decrypts messages. MongoDB stores only encrypted payloads and public keys. Identity is established via **email OTP**; encryption keys are agreed with **ECDH** without users meeting in person.
+### Realtime collaboration
+- **WebSocket** ciphertext relay with JWT authentication
+- **Live presence** — see who is online in each room
+- **Typing indicators** — ephemeral, never stored
+- **Auto-reconnect** with backoff · **Live** connection badge in UI
 
-**Assessment coverage:** [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) maps every brief requirement to code and documentation.
+### Identity & security
+- **Email OTP** login → JWT session (no passwords stored)
+- **Invite-only rooms** — 6-character join codes
+- Rate limiting, security headers, honeypot endpoint
+- OpenAPI docs, pytest + vitest, CI on every push
+
+Details: [docs/REALTIME-ARCHITECTURE.md](docs/REALTIME-ARCHITECTURE.md)
 
 ---
 
-## 1a. Assessment alignment (B9IS103)
+## Overview
 
-| Mark component | Weight | Evidence in this repository |
-|----------------|--------|----------------------------|
-| Design and implementation | 40 | Architecture (§3–§9), working code, [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md), [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) |
-| Vulnerability analysis (peer system 1) | 20 | [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) §Peer System 1 |
-| Vulnerability analysis (peer system 2) | 20 | [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) §Peer System 2 |
-| Reactive analysis and improvements | 20 | §12 Attack Scenarios, §13 Remediation, peer doc §Reactive analysis |
+StudySafe is a self-hosted messaging platform for student project teams. Users authenticate with email OTP, join rooms via invite codes, and chat in real time. The FastAPI backend is a **ciphertext relay** — it never decrypts messages. MongoDB holds encrypted payloads and public keys only.
 
----
-
-## 1b. System requirements
-
-### Functional requirements
-
-| ID | Requirement | Implementation |
-|----|-------------|----------------|
-| FR-1 | User registration and login | Email OTP → JWT (`backend/app/services/auth_service.py`, `frontend/src/pages/LoginPage.tsx`) |
-| FR-2 | Create and join collaboration rooms | Invite codes (`backend/app/services/room_service.py`, `DashboardPage.tsx`) |
-| FR-3 | Exchange encrypted messages in real time | WebSocket relay + client crypto (`main.py`, `ChatRoom.tsx`, `lib/crypto.ts`) |
-| FR-4 | Key agreement without prior meeting | ECDH P-256 public-key registry per room |
-| FR-5 | Message history | Ciphertext stored in MongoDB; decrypted on client rejoin |
-| FR-6 | Presence and typing | WebSocket events (`backend/app/websocket/`, realtime UI components) |
-
-### Non-functional requirements
-
-| ID | Requirement | Implementation |
-|----|-------------|----------------|
-| NFR-1 | Confidentiality of message content | E2E AES-256-GCM; server stores ciphertext only |
-| NFR-2 | Availability | Docker Compose, health endpoint, WebSocket auto-reconnect |
-| NFR-3 | Maintainability | Layered backend (routers → services → repositories), typed frontend |
-| NFR-4 | Auditability | Structured logging, honeypot, Git history on GitHub |
-| NFR-5 | Deployability | Dockerfiles, `docker-compose.yml`, AWS outline in `deploy/README.md` |
-
-### Security requirements
-
-| ID | Requirement | Implementation |
-|----|-------------|----------------|
-| SR-1 | Authenticate participants | Email OTP + JWT on REST and WebSocket |
-| SR-2 | Authorize room access | Membership checks before messages and WS connect |
-| SR-3 | No security through obscurity | Standard Web Crypto API; documented algorithms |
-| SR-4 | Maliciously curious relay | Server cannot decrypt; documented in §10–§11 |
-| SR-5 | Rate limiting and abuse controls | slowapi OTP and API limits |
-| SR-6 | Input validation | Pydantic schemas on all REST bodies |
-| SR-7 | Key integrity | SHA-256 fingerprint for out-of-band verification |
-
-### Identity verification design
-
-StudySafe uses **communications-channel identity** (assignment-permitted model):
-
-1. **Email OTP** — proves control of an email address at login time (AWS SES in production; console log in development).
-2. **JWT session** — binds API and WebSocket actions to the verified user ID.
-3. **Key fingerprint** — SHA-256 hash of the user's public key; teammates verify on a second channel (phone, Zoom, in person) to detect server key substitution.
-
-We do **not** trust the email provider or relay server with message confidentiality — only with delivery of the OTP and transport of ciphertext.
+Full functional, security, and assessment mapping: **[docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md)**
 
 ---
 
@@ -158,23 +130,31 @@ Student teams coordinate daily on deadlines, credentials, and assignment splits 
 
 ### User journey
 
-1. User enters email → receives OTP (logged to console in dev, SES in prod)
-2. User verifies OTP → receives JWT
-3. User creates room or joins with invite code
-4. Browser generates ECDH key pair, registers public key with server
-5. User opens WebSocket (JWT in query string)
-6. On send: encrypt for each peer → JSON payload → WebSocket → server stores ciphertext → broadcast
-7. Recipients decrypt locally with their private key
+1. Enter email → receive OTP → verify → JWT issued  
+2. Create or join a room with an invite code  
+3. Browser generates ECDH keys; public key registered with server  
+4. Open WebSocket (JWT-authenticated)  
+5. Encrypt message client-side → send ciphertext → server stores & relays → peers decrypt locally  
 
-### Realtime Features
+### Realtime pipeline
 
-- **Online presence** — see who is connected in each room (WebSocket + REST snapshot)
-- **Typing indicators** — ephemeral typing events relayed without persisting content
-- **Auto-reconnect** — WebSocket client retries with backoff after network drops
-- **Encrypted history** — ciphertext message history loaded and decrypted on room join
+```
+Browser A                    FastAPI relay                 Browser B
+   │  typing / presence  ───────►│◄──────────────────  typing / presence
+   │  encrypted payload  ───────►│ store ciphertext ──►  decrypt locally
+   │  auto-reconnect             │ JWT + room check
+```
 
+| Capability | Transport | Stored? |
+|------------|-----------|---------|
+| Messages | WebSocket `type: message` | MongoDB (ciphertext) |
+| Presence | WebSocket `type: presence` | In-memory only |
+| Typing | WebSocket `type: typing` | Not stored |
+| Online snapshot | REST `GET /rooms/{id}/online` | Optional fallback |
 
-### Layered backend
+See [docs/REALTIME-ARCHITECTURE.md](docs/REALTIME-ARCHITECTURE.md) for protocol details.
+
+### Backend layers
 
 ```
 routers/     → HTTP/WebSocket entry points, validation
@@ -462,20 +442,7 @@ cd frontend && npm test && npm run build
 
 ---
 
-## 18. Peer vulnerability analysis
-
-The assignment requires analysis of **two other groups' systems**. Use [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) to document:
-
-- Architecture and trust assumptions for each assigned peer project
-- Proposed interception and weakness attacks
-- Mitigations you would recommend to those teams
-- **Reactive analysis** — responses to attacks other groups raise against StudySafe (cross-linked to §12–§13)
-
-Fill peer project names and findings when groups are assigned.
-
----
-
-## Documentation index
+## Documentation
 
 | Document | Purpose |
 |----------|---------|
@@ -484,19 +451,19 @@ Fill peer project names and findings when groups are assigned.
 | [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) | Live demo walkthrough (local setup → two-user encrypted chat) |
 | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | Brief requirements mapped to code |
 | [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | README sections and features → source files |
-| [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) | Vulnerability analysis of two peer systems + reactive rebuttals |
+| [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) | Peer vulnerability analysis + reactive rebuttals |
 | [docs/REALTIME-ARCHITECTURE.md](docs/REALTIME-ARCHITECTURE.md) | WebSocket protocol, presence, typing |
 | [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md) | Security implementation notes |
 | [docs/PENETRATION-TEST.md](docs/PENETRATION-TEST.md) | Manual security test results |
 | [docs/DEPLOYMENT-OPTIONS.md](docs/DEPLOYMENT-OPTIONS.md) | Docker Compose vs cloud deployment |
 | [docs/REPO-SECURITY.md](docs/REPO-SECURITY.md) | Repository access and branch protection |
 | [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) | AI assistance session links (attribution) |
-| [docs/MOODLE-SUBMISSION.md](docs/MOODLE-SUBMISSION.md) | Moodle online text + zip checklist |
-| [docs/PROJECT-CHECKLIST.md](docs/PROJECT-CHECKLIST.md) | Pre-submission verification checklist |
-| [ATTRIBUTION.md](ATTRIBUTION.md) | Libraries, references, team contributions |
+| [docs/MOODLE-SUBMISSION.md](docs/MOODLE-SUBMISSION.md) | Moodle submission text |
+| [docs/PROJECT-CHECKLIST.md](docs/PROJECT-CHECKLIST.md) | Pre-submission checklist |
+| [ATTRIBUTION.md](ATTRIBUTION.md) | Libraries, AI sessions, team contributions |
 
 ---
 
-## License & attribution
+## License
 
-Academic project for B9IS103. See [ATTRIBUTION.md](ATTRIBUTION.md) for libraries, references, and AI chat session links.
+Academic project — B9IS103. See [ATTRIBUTION.md](ATTRIBUTION.md).

@@ -7,7 +7,59 @@ This document maps every requirement from the assignment brief to implementation
 
 ---
 
-## How to read this document
+## Assessment alignment (B9IS103 — 100 marks)
+
+| Mark component | Weight | Evidence |
+|----------------|--------|----------|
+| Design and implementation | 40 | [README](../README.md) architecture & code, [IMPLEMENTATION-MAP.md](IMPLEMENTATION-MAP.md), [DEMO-SCRIPT.md](DEMO-SCRIPT.md) |
+| Vulnerability analysis — peer system 1 | 20 | [PEER-SYSTEM-ANALYSIS.md](PEER-SYSTEM-ANALYSIS.md) § LocalTrust Chat |
+| Vulnerability analysis — peer system 2 | 20 | [PEER-SYSTEM-ANALYSIS.md](PEER-SYSTEM-ANALYSIS.md) § GitTrust Collab |
+| Reactive analysis and improvements | 20 | [README §12–§13](../README.md), peer doc § Reactive analysis |
+
+---
+
+## System requirements
+
+### Functional
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| FR-1 | User registration and login | Email OTP → JWT — `auth_service.py`, `LoginPage.tsx` |
+| FR-2 | Create and join rooms | Invite codes — `room_service.py`, `DashboardPage.tsx` |
+| FR-3 | Realtime encrypted messages | WebSocket + `crypto.ts`, `ChatRoom.tsx` |
+| FR-4 | Keys without prior meeting | ECDH P-256 public-key registry |
+| FR-5 | Message history | MongoDB ciphertext; client decrypt on rejoin |
+| FR-6 | Presence and typing | `backend/app/websocket/`, realtime UI |
+
+### Non-functional
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| NFR-1 | Confidentiality | E2E AES-256-GCM; ciphertext only at rest |
+| NFR-2 | Availability | Docker, `/health`, WebSocket auto-reconnect |
+| NFR-3 | Maintainability | Routers → services → repositories |
+| NFR-4 | Auditability | Logging, honeypot, Git history |
+| NFR-5 | Deployability | Docker Compose, `deploy/README.md` |
+
+### Security
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| SR-1 | Authenticate participants | Email OTP + JWT (REST + WS) |
+| SR-2 | Authorize room access | Membership checks |
+| SR-3 | No security through obscurity | Web Crypto API, documented algorithms |
+| SR-4 | Maliciously curious relay | Server never decrypts |
+| SR-5 | Rate limiting | slowapi |
+| SR-6 | Input validation | Pydantic schemas |
+| SR-7 | Key integrity | SHA-256 fingerprint (OOB verify) |
+
+### Identity verification
+
+1. **Email OTP** — proves email control (SES prod / console dev)  
+2. **JWT** — binds session to user  
+3. **Key fingerprint** — detect server key substitution via second channel  
+
+---
 
 | Column | Meaning |
 |--------|---------|
@@ -175,7 +227,7 @@ Live demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 | README (17+ sections) | ✅ Done |
 | Docker + CI/CD | ✅ Done |
 | Peer vulnerability analysis template | ✅ Done — `docs/PEER-SYSTEM-ANALYSIS.md` |
-| Fill 12 AI chat links | ⏳ Team — paste URLs in `docs/AI-CHAT-LOGS.md` |
+| Fill 12 AI chat links | ✅ Done — [AI-CHAT-LOGS.md](AI-CHAT-LOGS.md) (GitHub session logs; Cursor Share N/A) |
 | AWS EC2 live deployment | Optional — documented in `deploy/README.md` |
 
 Checklist: [docs/PROJECT-CHECKLIST.md](PROJECT-CHECKLIST.md)
