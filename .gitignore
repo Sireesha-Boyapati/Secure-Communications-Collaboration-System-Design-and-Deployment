@@ -28,3 +28,6 @@ secrets/
 
 # Logs
 *.log
+
+# Local automation scripts (not part of submission)
+scripts/
