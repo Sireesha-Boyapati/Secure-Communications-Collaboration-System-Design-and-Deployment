@@ -230,3 +230,90 @@
 }
 
 .composer input { flex: 1; }
+
+/* Realtime UI */
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin-right: 0.35rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.online-users {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.online-chip {
+  display: inline-block;
+  background: #d1fae5;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  margin-right: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.online-chip.you {
+  background: #bbf7d0;
+  font-weight: 600;
+}
+
+.realtime-note {
+  font-size: 0.8rem;
+}
+
+.connection-badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.connection-badge.status-connected { color: #16a34a; }
+.connection-badge.status-disconnected { color: #dc2626; }
+.connection-badge.status-reconnecting { color: #ca8a04; }
+.connection-badge.status-connecting { color: #ca8a04; }
+.connection-badge.status-error { color: #dc2626; }
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 0.25rem 0.5rem;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: bounce 1.2s infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
