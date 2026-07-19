@@ -2,6 +2,8 @@
 
 Per B9IS103 brief: AI use must be documented. Each row is a **separate** Cursor conversation. Full exported transcripts live in [docs/ai-sessions/](ai-sessions/).
 
+**Cursor account:** Sessions were run from **Mahendra's Cursor account** on the team development machine. This is a group project — all four members reviewed and integrated AI-assisted output (see [ATTRIBUTION.md](../ATTRIBUTION.md)).
+
 ---
 
 ## Sessions

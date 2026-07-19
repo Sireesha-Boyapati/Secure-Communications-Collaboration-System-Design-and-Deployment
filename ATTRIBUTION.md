@@ -9,7 +9,7 @@ Per assignment brief: external resources and AI use must be documented and attri
 AI was used in **12 separate Cursor chat sessions** covering distinct development stages.  
 **Links:** [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) (index with GitHub links to each session)
 
-**Exported transcripts:** Markdown logs for all 12 sessions are in [docs/ai-sessions/](docs/ai-sessions/) (one file per conversation, exported from Cursor agent transcripts).
+**Exported transcripts:** Markdown logs for all 12 sessions are in [docs/ai-sessions/](docs/ai-sessions/) (exported from **Mahendra's Cursor account**; team-reviewed per group attribution rules).
 
 | Date | Tool | Purpose | Files affected |
 |------|------|---------|----------------|
