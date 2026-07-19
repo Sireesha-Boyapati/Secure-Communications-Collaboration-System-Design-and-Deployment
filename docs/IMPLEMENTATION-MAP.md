@@ -87,8 +87,8 @@ This document maps **every README section**, **docs file**, and **demo feature**
 | Docker local stack | ✅ Done | `Dockerfile`, `docker-compose.yml` | `Dockerfile`, `nginx.conf` | `docker compose up` |
 | CI pipeline | ✅ Done | `.github/workflows/ci.yml` | same workflow | GitHub Actions tab |
 | AWS production deploy | ⏳ Planned | `deploy/README.md` | — | Explain as Phase 2 by 19th |
-| Message history on join | ⏳ Planned | `routers/messages.py` (API exists) | Not wired in UI yet | API in Swagger |
-| AI chat links filled | ⏳ Planned | — | — | `docs/AI-CHAT-LOGS.md` |
+| Message history on join | ✅ Done | `ChatRoom.tsx` + `fetchMessageHistory` | Reload room — prior messages appear |
+| AI chat links filled | ⏳ Tonight | — | `docs/AI-CHAT-LOGS.md` — paste 12 Cursor share URLs |
 
 ---
 

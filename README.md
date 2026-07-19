@@ -395,7 +395,9 @@ cd frontend && npm test && npm run build
 | [docs/REPO-SECURITY.md](docs/REPO-SECURITY.md) | Branch protection — 4 members only |
 | [docs/DEPLOYMENT-OPTIONS.md](docs/DEPLOYMENT-OPTIONS.md) | Docker Compose vs alternatives |
 | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | **Maps every brief requirement to production evidence** |
-| [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | Maps every README section and feature to code |
+| [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | Maps README sections and features to code |
+| [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md) | **Final submission checklist — due 11 PM tonight** |
+| [docs/PENETRATION-TEST.md](docs/PENETRATION-TEST.md) | Security testing results |
 | [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) | AI assistance session links |
 | [ATTRIBUTION.md](ATTRIBUTION.md) | External resources & AI use |
 

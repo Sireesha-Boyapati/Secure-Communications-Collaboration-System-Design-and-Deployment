@@ -2,20 +2,23 @@
 
 Per assignment brief: external resources and AI use must be documented and attributed.
 
+**Final submission:** 19 July 2026
+
 ---
 
 ## AI assistance
 
-AI was used in **12 separate Cursor chat sessions** covering distinct development stages. Links are in [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md).
+AI was used in **12 separate Cursor chat sessions** covering distinct development stages.  
+**Links:** [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md)
 
 | Date | Tool | Purpose | Files affected |
 |------|------|---------|----------------|
 | 2026-06-18 | Cursor AI | Project proposal ideas (4 options) | `docs/PROJECT-PROPOSALS.md` |
 | 2026-07-01 | Cursor AI | StudySafe selection doc | `docs/STUDYSAFE.md` |
 | 2026-07-02–05 | Cursor AI | Phase 1 demo scaffold | `backend/`, `frontend/`, `docs/` |
-| 2026-07-06–20 | Cursor AI | Production refactor — auth, MongoDB, Docker, CI, README | Full repository |
+| 2026-07-06–19 | Cursor AI | Production refactor — auth, MongoDB, Docker, CI, README, submission | Full repository |
 
-**Note:** AI-generated code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
+**Note:** AI-generated scaffold code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
 
 ---
 
@@ -51,9 +54,7 @@ AI was used in **12 separate Cursor chat sessions** covering distinct developmen
 
 | Member | Contribution |
 |--------|--------------|
-| Mahendra | Backend architecture, FastAPI services, WebSocket, MongoDB repositories, Docker |
-| Sireesha | Frontend React app, auth flow, API integration, UI design |
-| Oree | Auth/OTP design, AWS deployment planning, SES integration |
-| Sudheer | Threat model, security tables, documentation, testing strategy |
-
-_Update before final submission._
+| Mahendra | Backend architecture, FastAPI services layer, WebSocket relay, MongoDB repositories, Docker, integration tests |
+| Sireesha | Frontend React app, OTP login flow, dashboard, encrypted chat UI, API integration, GitHub repository management |
+| Oree | Email OTP / JWT auth design, AWS deployment architecture, SES integration planning |
+| Sudheer | Threat model, attack scenario tables, penetration testing notes, documentation and compliance docs |

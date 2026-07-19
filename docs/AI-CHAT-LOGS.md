@@ -1,14 +1,20 @@
 # AI Chat Session Logs — StudySafe
 
-Per assignment requirements, AI assistance is documented in **separate sessions** — each covering a distinct development stage. Replace placeholder links with your actual Cursor chat share URLs before submission.
+**DEADLINE: Paste all 12 links before 11 PM submission tonight.**
+
+Per assignment requirements, AI assistance is documented in **separate sessions** — each covering a distinct development stage.
 
 ---
 
-## How to add your links
+## How to get your links (15 minutes)
 
-1. Open each Cursor chat session from your history
-2. Click **Share** → copy the link
-3. Replace `YOUR_LINK_HERE` below
+1. Open **Cursor** → click **Chat history** (clock icon)
+2. Find chats matching the topics below (or create/share from current sessions)
+3. Click **Share** on each chat → copy the URL
+4. Replace `YOUR_LINK_HERE` in the table below
+5. Commit and push: `git add docs/AI-CHAT-LOGS.md && git commit -m "docs: add AI chat session links" && git push`
+
+**Tip:** If you cannot find old chats, use today's Cursor sessions covering each topic — professor needs separate sessions, not one long chat.
 
 ---
 

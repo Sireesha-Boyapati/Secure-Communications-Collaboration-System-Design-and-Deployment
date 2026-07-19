@@ -156,17 +156,23 @@ This document proves every requirement from the original project brief is implem
 
 ---
 
-## 9. Remaining before 100% submission (19 July)
+## 9. Submission status (19 July 2026)
 
-| Task | Owner | Priority |
-|------|-------|----------|
-| Push 44 commits to GitHub | Sireesha | **Tonight** |
-| Enable branch protection | Sireesha | **Tonight** |
-| Fill 12 AI chat links | All team | By 18 July |
-| AWS EC2 deployment | Oree/Mahendra | By 17 July |
-| Message history in UI | Sireesha | By 16 July |
-| More integration tests | Mahendra/Sudheer | By 16 July |
-| Penetration test notes | Sudheer | By 18 July |
+| Task | Status |
+|------|--------|
+| Push commits to GitHub (48+) | ✅ Done |
+| OTP + JWT authentication | ✅ Done |
+| MongoDB persistence | ✅ Done |
+| Message history on rejoin | ✅ Done |
+| Integration + security tests | ✅ Done (10 pytest + vitest) |
+| Penetration test notes | ✅ Done — `docs/PENETRATION-TEST.md` |
+| Professional README (17 sections) | ✅ Done |
+| Docker + CI/CD | ✅ Done |
+| Fill 12 AI chat links | ⏳ **Team — paste tonight** |
+| AWS EC2 live deployment | Phase 2 — documented in `deploy/README.md` |
+| Branch protection on GitHub | Recommended — see `docs/REPO-SECURITY.md` |
+
+**Submit before 11 PM:** [docs/SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md)
 
 ---
 
