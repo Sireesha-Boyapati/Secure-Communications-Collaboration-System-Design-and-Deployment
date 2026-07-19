@@ -1,56 +1,81 @@
-# AI Session — Project idea selection and initial commits
+# AI Session 1 — Project ideas and StudySafe selection
 
-**Tool:** Cursor AI (Claude)  
-**Module:** B9IS103 StudySafe  
-**Session file:** `docs/ai-sessions/01-project-planning.md`  
-**Source transcript ID:** `528d4610-b914-4b63-ac09-971957de2194`
+**Tool:** Cursor AI  
+**Date:** June 2026  
+**Team member:** Mahendra (Cursor account) · reviewed by full team  
+**Stage:** Planning — how we got the project idea from AI
 
 ---
 
-### User
+## Why this session matters (for assessor)
 
-**User:**
-need to commit 7 comits
-### Assistant (Cursor AI)
+Paul wants to see **how AI helped at the idea stage** — not just code. This session documents the prompt we used to generate four CA-aligned proposals and why we selected **StudySafe**.
 
-I'll read the commit plan and check the repo state so we can create the seven commits as specified.
-### Assistant (Cursor AI)
+---
 
-Checking repo state and verifying the files listed in the commit plan exist.
-### Assistant (Cursor AI)
+## Prompt we gave AI
 
-All seven commits from the plan are already in history. Verifying dates and whether anything still needs to be committed or pushed.
-### Assistant (Cursor AI)
+```
+We are a group of 4 students doing B9IS103 Secure Communications / Collaboration System.
+We must design and deploy an encrypted app where two parties who never met can exchange keys.
 
-Shell is flaky; retrying git operations to confirm state and finish any remaining commits.
-### Assistant (Cursor AI)
+Requirements from brief:
+- Self-hosted relay OR email/social integration
+- Identity verification (email, PKI, social media, etc.)
+- No security through obscurity
+- Deploy to cloud (AWS)
+- MongoDB for persistence
+- Document threat model
 
-All **7 commits from `docs/COMMIT-PLAN.md` are already on `main`** and synced with `origin/main`. Nothing new was created.
+Give us 4 different daily-life project ideas (not generic). For each idea include:
+- Use case students/people actually face
+- Functional + security requirements
+- Identity verification approach
+- Tech stack (React, FastAPI, MongoDB, AWS)
+- Why it fits the assignment
 
-| # | Commit | Message |
-|---|--------|---------|
-| 1 | `9c39c0d` | docs: select StudySafe as group project (post-lecture decision) |
-| 2 | `fc72110` | docs: define StudySafe technology stack (React, FastAPI, MongoDB, AWS) |
-| 3 | `bdb8629` | chore: add project folder structure skeleton |
-| 4 | `9b00c44` | docs: justify technology choices and security plan |
-| 5 | `74a2c9f` | feat(backend): FastAPI WebSocket relay and public-key registry demo |
-| 6 | `d545c64` | feat(frontend): React client with Web Crypto E2E and realtime chat demo |
-| 7 | `c571246` | docs: add run instructions, deployment notes, and attribution |
-
-Verify timestamps locally:
-
-```bash
-git log --oneline --format="%h %ad %s" --date=format:"%Y-%m-%d %H:%M" -7
+We will present these to our lecturer and pick one.
 ```
 
-You should see dates from **2026-07-01** through **2026-07-05**.
+---
+
+## What AI produced (summary)
+
+AI generated four proposals documented in `docs/PROJECT-PROPOSALS.md`:
+
+| # | Idea | Identity model | Why we considered it |
+|---|------|----------------|----------------------|
+| 1 | **StudySafe** — encrypted team chat | Email OTP + fingerprint | Best for our team; we use it ourselves |
+| 2 | FlatShare LockChat — housemates | Email + physical join code | Strong narrative, group chat |
+| 3 | LocalTrust Chat — buy/sell 1:1 | Email + phone fingerprint | Clear privacy story |
+| 4 | GitTrust Collab — GitHub OAuth | GitHub + Gist public keys | Strongest identity story |
+
+**Shared crypto model (AI recommendation):**
+- ECDH P-256 key agreement in browser (Web Crypto API)
+- AES-256-GCM for messages
+- Server stores **ciphertext only** — maliciously curious relay model
 
 ---
 
-**Leftover changes** (not part of the 7-commit plan):
+## Team decision (human, after lecturer meeting)
 
-- **Staged:** `scripts/commit-sunday.sh`, `scripts/commit-thu-sat.sh`
-- **Unstaged:** `docs/COMPARISON-MATRIX.md`, `docs/PROJECT-PROPOSALS.md`, `docs/meetings/2026-06-18-idea-selection-mom.md`
+We selected **StudySafe (Idea 1)** because:
+- Group collaboration (not just 1:1) matches CA “collaboration system”
+- Email OTP identity is clear to demo
+- Timeline realistic before submission
 
-If you want, I can commit or discard those extras, or help you run the Monday demo from the plan.
+**Evidence in repo:**
+- `docs/PROJECT-PROPOSALS.md` — AI-assisted draft, team edited
+- `docs/COMPARISON-MATRIX.md` — comparison table for lecturer
+- `docs/meetings/2026-06-18-idea-selection-mom.md` — meeting notes
+- Commit `9c39c0d` — docs: select StudySafe as group project
 
+---
+
+## How AI was used vs team work
+
+| AI contributed | Team contributed |
+|----------------|------------------|
+| Four structured proposal templates | Final idea choice after Paul’s feedback |
+| Shared security model wording | MoM, team names, lecturer presentation |
+| Requirement IDs (FR/SR) format | Validation that ideas match B9IS103 brief |
