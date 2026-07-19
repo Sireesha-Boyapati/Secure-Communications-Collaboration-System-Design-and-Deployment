@@ -13,6 +13,17 @@
 | **Commits** | 44+ with full development history |
 | **Compliance** | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) — every brief requirement mapped to code |
 
+
+
+## Live demo screenshots
+
+> **Placeholder for submission:** add docs/assets/demo-two-browsers.png (OTP login + two-browser encrypted chat with presence badge).
+
+| Screenshot | Description |
+|------------|-------------|
+| docs/assets/demo-login.png | OTP verification screen |
+| docs/assets/demo-two-browsers.png | Two users, typing indicator, Live badge |
+
 > **For professor / recruiter:** This is not a low-level student demo. It is a production-oriented system with a services layer, database persistence, JWT authentication, automated CI, containerisation, and a full security threat model. See [Requirements Compliance](docs/REQUIREMENTS-COMPLIANCE.md) for evidence.
 
 ---
