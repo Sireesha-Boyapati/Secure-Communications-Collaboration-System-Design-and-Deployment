@@ -7,6 +7,7 @@ The server NEVER decrypts messages. It:
   - relays ciphertext over WebSocket
 """
 
+import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -29,6 +30,7 @@ from app.security.honeypot import router as honeypot_router
 from app.security.middleware import SecurityHeadersMiddleware
 from app.security.rate_limit import limiter
 from app.services.message_service import message_service
+from app.websocket import events
 from app.websocket.manager import manager
 
 logger = get_logger(__name__)
@@ -126,8 +128,21 @@ async def websocket_endpoint(
             raw = await websocket.receive_text()
 
             if len(raw) > 65536:
-                await manager.send_personal(websocket, {"type": "error", "message": "Payload too large"})
+                await manager.send_personal(
+                    websocket, {"type": events.ERROR, "message": "Payload too large"}
+                )
                 continue
+
+            # Realtime control events (typing) — not stored
+            try:
+                control = json.loads(raw)
+                if isinstance(control, dict) and control.get("type") == events.TYPING:
+                    await manager.relay_typing(
+                        room_id, username, bool(control.get("is_typing", False))
+                    )
+                    continue
+            except json.JSONDecodeError:
+                pass
 
             await message_service.store_ciphertext(
                 user["id"], room_id, username, raw
@@ -136,7 +151,7 @@ async def websocket_endpoint(
             await manager.broadcast(
                 room_id,
                 {
-                    "type": "message",
+                    "type": events.MESSAGE,
                     "room_id": room_id,
                     "from_user": username,
                     "payload": raw,
@@ -145,13 +160,4 @@ async def websocket_endpoint(
                 exclude=username,
             )
     except WebSocketDisconnect:
-        manager.disconnect(room_id, username)
-        await manager.broadcast(
-            room_id,
-            {
-                "type": "system",
-                "event": "leave",
-                "username": username,
-                "message": f"{username} left the room",
-            },
-        )
+        await manager.disconnect_and_notify(room_id, username)
