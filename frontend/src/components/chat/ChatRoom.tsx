@@ -18,7 +18,7 @@ export default function ChatRoom({ roomId, username }: Props) {
   const [keys, setKeys] = useState<KeyPairBundle | null>(null);
   const [peers, setPeers] = useState<PublicKeyEntry[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([username]);
+  const { onlineUsers, setOnlineUsers } = useOnlineUsers(roomId, username);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
