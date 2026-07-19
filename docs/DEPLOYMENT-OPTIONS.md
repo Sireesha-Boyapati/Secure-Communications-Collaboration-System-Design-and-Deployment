@@ -11,7 +11,7 @@ Why we use **Docker Compose** and what alternatives exist.
 | **One command starts everything** | `docker compose up` → MongoDB + backend + frontend together |
 | **Same environment for all 4 members** | No "works on my machine" — everyone runs identical containers |
 | **Matches production architecture** | Same containers deploy to AWS EC2 later |
-| **Professor can reproduce demo** | Clone repo → `docker compose up` → working app |
+| **Reproducible local demo** | Clone repo → `docker compose up` → working app |
 | **Isolates services** | MongoDB, API, and frontend are separated — attack on one doesn't expose others |
 | **Free and standard** | Industry-standard for student and startup projects |
 

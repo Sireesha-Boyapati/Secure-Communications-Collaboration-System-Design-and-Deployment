@@ -2,8 +2,6 @@
 
 Per assignment brief: external resources and AI use must be documented and attributed.
 
-**Final submission:** 19 July 2026
-
 ---
 
 ## AI assistance

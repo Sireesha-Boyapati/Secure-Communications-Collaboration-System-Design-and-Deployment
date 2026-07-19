@@ -6,25 +6,23 @@
 
 | | |
 |---|---|
+| **Module** | B9IS103 — Computer Systems Security 2026 |
+| **Assessment** | Secure Communications / Collaboration System Design and Deployment |
 | **Team** | Mahendra · Sireesha · Oree · Sudheer |
-| **Lecturer** | Paul Laird |
 | **Stack** | React · FastAPI · MongoDB · AWS |
-| **Status** | **Production-grade skeleton** (~70%) — real OTP auth, MongoDB, JWT, E2E crypto, Docker, CI |
-| **Commits** | 44+ with full development history |
-| **Compliance** | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) — every brief requirement mapped to code |
+| **Repository** | [GitHub](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment) |
 
+---
 
+## Quick start
 
-## Live demo screenshots
+```bash
+docker compose up mongodb -d
+cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
+cd frontend && npm run dev
+```
 
-> **Placeholder for submission:** add docs/assets/demo-two-browsers.png (OTP login + two-browser encrypted chat with presence badge).
-
-| Screenshot | Description |
-|------------|-------------|
-| docs/assets/demo-login.png | OTP verification screen |
-| docs/assets/demo-two-browsers.png | Two users, typing indicator, Live badge |
-
-> **For professor / recruiter:** This is not a low-level student demo. It is a production-oriented system with a services layer, database persistence, JWT authentication, automated CI, containerisation, and a full security threat model. See [Requirements Compliance](docs/REQUIREMENTS-COMPLIANCE.md) for evidence.
+Open http://localhost:5173 · API docs http://localhost:8000/docs · Full walkthrough: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)
 
 ---
 
@@ -32,7 +30,67 @@
 
 StudySafe is a self-hosted secure messaging platform for student project teams. Users authenticate with **email OTP**, join encrypted chat rooms via **invite codes**, and exchange messages that are **encrypted in the browser** before reaching the server.
 
-The backend is a **ciphertext relay** — it never decrypts messages. MongoDB stores only encrypted payloads and public keys. This design satisfies the module requirement for a secure communications/collaboration system with documented threat modelling.
+The backend is a **ciphertext relay** — it never decrypts messages. MongoDB stores only encrypted payloads and public keys. Identity is established via **email OTP**; encryption keys are agreed with **ECDH** without users meeting in person.
+
+**Assessment coverage:** [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) maps every brief requirement to code and documentation.
+
+---
+
+## 1a. Assessment alignment (B9IS103)
+
+| Mark component | Weight | Evidence in this repository |
+|----------------|--------|----------------------------|
+| Design and implementation | 40 | Architecture (§3–§9), working code, [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md), [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) |
+| Vulnerability analysis (peer system 1) | 20 | [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) §Peer System 1 |
+| Vulnerability analysis (peer system 2) | 20 | [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) §Peer System 2 |
+| Reactive analysis and improvements | 20 | §12 Attack Scenarios, §13 Remediation, peer doc §Reactive analysis |
+
+---
+
+## 1b. System requirements
+
+### Functional requirements
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| FR-1 | User registration and login | Email OTP → JWT (`backend/app/services/auth_service.py`, `frontend/src/pages/LoginPage.tsx`) |
+| FR-2 | Create and join collaboration rooms | Invite codes (`backend/app/services/room_service.py`, `DashboardPage.tsx`) |
+| FR-3 | Exchange encrypted messages in real time | WebSocket relay + client crypto (`main.py`, `ChatRoom.tsx`, `lib/crypto.ts`) |
+| FR-4 | Key agreement without prior meeting | ECDH P-256 public-key registry per room |
+| FR-5 | Message history | Ciphertext stored in MongoDB; decrypted on client rejoin |
+| FR-6 | Presence and typing | WebSocket events (`backend/app/websocket/`, realtime UI components) |
+
+### Non-functional requirements
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| NFR-1 | Confidentiality of message content | E2E AES-256-GCM; server stores ciphertext only |
+| NFR-2 | Availability | Docker Compose, health endpoint, WebSocket auto-reconnect |
+| NFR-3 | Maintainability | Layered backend (routers → services → repositories), typed frontend |
+| NFR-4 | Auditability | Structured logging, honeypot, Git history on GitHub |
+| NFR-5 | Deployability | Dockerfiles, `docker-compose.yml`, AWS outline in `deploy/README.md` |
+
+### Security requirements
+
+| ID | Requirement | Implementation |
+|----|-------------|----------------|
+| SR-1 | Authenticate participants | Email OTP + JWT on REST and WebSocket |
+| SR-2 | Authorize room access | Membership checks before messages and WS connect |
+| SR-3 | No security through obscurity | Standard Web Crypto API; documented algorithms |
+| SR-4 | Maliciously curious relay | Server cannot decrypt; documented in §10–§11 |
+| SR-5 | Rate limiting and abuse controls | slowapi OTP and API limits |
+| SR-6 | Input validation | Pydantic schemas on all REST bodies |
+| SR-7 | Key integrity | SHA-256 fingerprint for out-of-band verification |
+
+### Identity verification design
+
+StudySafe uses **communications-channel identity** (assignment-permitted model):
+
+1. **Email OTP** — proves control of an email address at login time (AWS SES in production; console log in development).
+2. **JWT session** — binds API and WebSocket actions to the verified user ID.
+3. **Key fingerprint** — SHA-256 hash of the user's public key; teammates verify on a second channel (phone, Zoom, in person) to detect server key substitution.
+
+We do **not** trust the email provider or relay server with message confidentiality — only with delivery of the OTP and transport of ciphertext.
 
 ---
 
@@ -220,6 +278,7 @@ Interactive docs: **http://localhost:8000/docs**
 | POST | `/api/rooms/{id}/keys` | JWT | Register public key |
 | GET | `/api/rooms/{id}/keys` | JWT | List room public keys |
 | GET | `/api/rooms/{id}/messages` | JWT | Ciphertext history |
+| GET | `/api/rooms/{id}/online` | JWT | Connected usernames (REST snapshot) |
 
 ### WebSocket
 
@@ -358,13 +417,15 @@ npm run dev
 
 ### Demo flow
 
+See **[docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)** for the full step-by-step guide. Summary:
+
 1. Open http://localhost:5173 → sign in with any email
-2. Check backend terminal for `[DEV OTP] email=... code=...`
-3. Enter OTP + display name → dashboard
-4. Create room → share invite code with teammate
-5. Open incognito → sign in as second user → join room
-6. Send message → verify decryption works
-7. Show http://localhost:8000/docs and Network tab (ciphertext only)
+2. Copy OTP from backend terminal: `[DEV OTP] email=... code=...`
+3. Create a room → share invite code
+4. Second browser (incognito) → second user joins
+5. Confirm **Live** badge, typing indicator, and encrypted messages
+6. DevTools → Network → verify ciphertext on the wire
+7. Open http://localhost:8000/docs for the typed API
 
 ---
 
@@ -392,13 +453,24 @@ cd frontend && npm test && npm run build
 
 - [ ] HttpOnly cookie-based JWT (reduce XSS token theft)
 - [ ] Content Security Policy headers
-- [ ] Message history load on room join (decrypt client-side)
-- [ ] AWS deployment with Terraform
-- [ ] CloudWatch dashboards + alerts
+- [ ] AWS deployment with Terraform (see `deploy/README.md`)
+- [ ] CloudWatch dashboards and alerts
 - [ ] Invite code brute-force lockout
-- [ ] File attachment encryption
-- [ ] Mobile-responsive PWA
-- [ ] Penetration test report for final submission
+- [ ] Encrypted file attachments
+- [ ] Progressive Web App for mobile
+
+---
+
+## 18. Peer vulnerability analysis
+
+The assignment requires analysis of **two other groups' systems**. Use [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) to document:
+
+- Architecture and trust assumptions for each assigned peer project
+- Proposed interception and weakness attacks
+- Mitigations you would recommend to those teams
+- **Reactive analysis** — responses to attacks other groups raise against StudySafe (cross-linked to §12–§13)
+
+Fill peer project names and findings when groups are assigned.
 
 ---
 
@@ -406,19 +478,19 @@ cd frontend && npm test && npm run build
 
 | Document | Purpose |
 |----------|---------|
-| [docs/STUDYSAFE.md](docs/STUDYSAFE.md) | Project definition |
-| [docs/TECH-STACK.md](docs/TECH-STACK.md) | Detailed stack |
-| [docs/FOLDER-STRUCTURE.md](docs/FOLDER-STRUCTURE.md) | Repo layout |
-| [docs/WHY-TECH-CHOICES.md](docs/WHY-TECH-CHOICES.md) | Technology rationale |
+| [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) | Live demo walkthrough (local setup → two-user encrypted chat) |
+| [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | Brief requirements mapped to code |
+| [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | README sections and features → source files |
+| [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) | Vulnerability analysis of two peer systems + reactive rebuttals |
+| [docs/REALTIME-ARCHITECTURE.md](docs/REALTIME-ARCHITECTURE.md) | WebSocket protocol, presence, typing |
 | [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md) | Security implementation notes |
-| [docs/REPO-SECURITY.md](docs/REPO-SECURITY.md) | Branch protection — 4 members only |
-| [docs/DEPLOYMENT-OPTIONS.md](docs/DEPLOYMENT-OPTIONS.md) | Docker Compose vs alternatives |
-| [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | **Maps every brief requirement to production evidence** |
-| [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | Maps README sections and features to code |
-| [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md) | **Final submission checklist — due 11 PM tonight** |
-| [docs/PENETRATION-TEST.md](docs/PENETRATION-TEST.md) | Security testing results |
-| [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) | AI assistance session links |
-| [ATTRIBUTION.md](ATTRIBUTION.md) | External resources & AI use |
+| [docs/PENETRATION-TEST.md](docs/PENETRATION-TEST.md) | Manual security test results |
+| [docs/DEPLOYMENT-OPTIONS.md](docs/DEPLOYMENT-OPTIONS.md) | Docker Compose vs cloud deployment |
+| [docs/REPO-SECURITY.md](docs/REPO-SECURITY.md) | Repository access and branch protection |
+| [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) | AI assistance session links (attribution) |
+| [docs/MOODLE-SUBMISSION.md](docs/MOODLE-SUBMISSION.md) | Moodle online text + zip checklist |
+| [docs/PROJECT-CHECKLIST.md](docs/PROJECT-CHECKLIST.md) | Pre-submission verification checklist |
+| [ATTRIBUTION.md](ATTRIBUTION.md) | Libraries, references, team contributions |
 
 ---
 

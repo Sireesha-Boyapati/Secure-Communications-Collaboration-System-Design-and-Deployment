@@ -1,11 +1,9 @@
-﻿# StudySafe â€” Requirements Compliance Matrix
+﻿# StudySafe — Requirements Compliance Matrix
 
-**Module:** B9IS103 â€” Secure Communications / Collaboration System  
-**Submission target:** 19 July 2026  
-**Current completion:** ~70% (demo-ready) â†’ 100% by submission  
-**Repository commits:** 44+ (production-grade development history)
+**Module:** B9IS103 — Secure Communications / Collaboration System  
+**Repository:** [GitHub](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment)
 
-This document proves every requirement from the original project brief is implemented â€” not as a student demo, but as a **production-oriented engineering project**.
+This document maps every requirement from the assignment brief to implementation evidence in the repository.
 
 ---
 
@@ -14,14 +12,14 @@ This document proves every requirement from the original project brief is implem
 | Column | Meaning |
 |--------|---------|
 | **Requirement** | What the brief asked for |
-| **Production evidence** | Exact file/path proving it exists |
-| **Professor can verify** | What to show in demo or GitHub |
+| **Production evidence** | Exact file or path |
+| **How to verify** | Demo step or GitHub location |
 
 ---
 
 ## 1. Frontend requirements
 
-| Requirement | Status | Production evidence | Professor can verify |
+| Requirement | Status | Production evidence | How to verify |
 |-------------|--------|---------------------|----------------------|
 | Proper UI design | âœ… Done | `frontend/src/App.css`, `frontend/src/index.css` | Login â†’ Dashboard â†’ Chat screens |
 | User interaction flow | âœ… Done | `frontend/src/pages/LoginPage.tsx` â†’ `DashboardPage.tsx` â†’ `ChatPage.tsx` | Full OTP â†’ room â†’ chat flow |
@@ -35,7 +33,7 @@ This document proves every requirement from the original project brief is implem
 
 ## 2. Backend requirements
 
-| Requirement | Status | Production evidence | Professor can verify |
+| Requirement | Status | Production evidence | How to verify |
 |-------------|--------|---------------------|----------------------|
 | Proper API structure | âœ… Done | `backend/app/routers/` â€” auth, rooms, messages, health | http://localhost:8000/docs |
 | Services layer | âœ… Done | `backend/app/services/` â€” 4 service files | Not fat controllers â€” logic in services |
@@ -52,14 +50,14 @@ This document proves every requirement from the original project brief is implem
 ## Realtime compliance (WebSocket)
 
 Detailed protocol, presence, typing, and security boundaries: [REALTIME-ARCHITECTURE.md](REALTIME-ARCHITECTURE.md).
-Professor demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
+Live demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 | No dummy/in-memory data | âœ… Done | MongoDB repositories replace in-memory dict | Data survives server restart |
 
 ---
 
 ## 3. Security layer requirements
 
-| Requirement | Status | Production evidence | Professor can verify |
+| Requirement | Status | Production evidence | How to verify |
 |-------------|--------|---------------------|----------------------|
 | Authentication design | âœ… Done | Email OTP + JWT â€” `docs/SECURITY-PLAN.md` | OTP flow demo |
 | Authorization design | âœ… Done | Room membership checks in services | Non-member gets 403 |
@@ -98,7 +96,7 @@ Professor demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 | Â§16 Testing Strategy | âœ… | `README.md` |
 | Â§17 Future Improvements | âœ… | `README.md` |
 
-**Recruiter/professor can understand the full system from README alone** â€” no separate report needed.
+**The README is the primary system report** — functional requirements, threat model, attack tables, and setup are all in `README.md`.
 
 ---
 
@@ -124,9 +122,9 @@ Professor demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 | 5. Security features | âœ… | Rate limit, honeypot, headers, E2E crypto, OTP |
 | 6. Testing | âœ… | `backend/tests/`, `frontend/src/lib/crypto.test.ts`, `.github/workflows/ci.yml` |
 | 7. Documentation | âœ… | README 17 sections + 11 docs files |
-| 8. Final GitHub repository | â³ | 44 commits local â€” **push required** |
-| 40â€“45 commits | âœ… | 44 commits on `main` |
-| Production-oriented (no shortcuts) | âœ… | MongoDB, JWT, services layer, Docker, CI |
+| 8. Final GitHub repository | ✅ | Public repo with full commit history on `main` |
+| Granular development history | ✅ | 80+ commits — backend, frontend, security, docs |
+| Production-oriented (no shortcuts) | ✅ | MongoDB, JWT, services layer, Docker, CI |
 
 ---
 
@@ -163,39 +161,39 @@ Professor demo steps: [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
 
 ---
 
-## 9. Submission status (19 July 2026)
+## 9. Project status
 
 | Task | Status |
 |------|--------|
-| Push commits to GitHub (48+) | âœ… Done |
-| OTP + JWT authentication | âœ… Done |
-| MongoDB persistence | âœ… Done |
-| Message history on rejoin | âœ… Done |
-| Integration + security tests | âœ… Done (10 pytest + vitest) |
-| Penetration test notes | âœ… Done â€” `docs/PENETRATION-TEST.md` |
-| Professional README (17 sections) | âœ… Done |
-| Docker + CI/CD | âœ… Done |
-| Fill 12 AI chat links | â³ **Team â€” paste tonight** |
-| AWS EC2 live deployment | Phase 2 â€” documented in `deploy/README.md` |
-| Branch protection on GitHub | Recommended â€” see `docs/REPO-SECURITY.md` |
+| GitHub repository with development history | ✅ Done |
+| OTP + JWT authentication | ✅ Done |
+| MongoDB persistence | ✅ Done |
+| Message history on rejoin | ✅ Done |
+| Realtime presence and typing | ✅ Done |
+| Integration + security tests | ✅ Done — pytest + vitest |
+| Penetration test notes | ✅ Done — `docs/PENETRATION-TEST.md` |
+| README (17+ sections) | ✅ Done |
+| Docker + CI/CD | ✅ Done |
+| Peer vulnerability analysis template | ✅ Done — `docs/PEER-SYSTEM-ANALYSIS.md` |
+| Fill 12 AI chat links | ⏳ Team — paste URLs in `docs/AI-CHAT-LOGS.md` |
+| AWS EC2 live deployment | Optional — documented in `deploy/README.md` |
 
-**Submit before 11 PM:** [docs/SUBMISSION-CHECKLIST.md](SUBMISSION-CHECKLIST.md)
+Checklist: [docs/PROJECT-CHECKLIST.md](PROJECT-CHECKLIST.md)
 
 ---
 
-## 10. Professor demo script (show production level in 15 min)
+## 10. Live demo reference
 
-1. **GitHub** â€” 44 commits, steady progress, professional commit messages
-2. **This file** â€” `docs/REQUIREMENTS-COMPLIANCE.md` â€” every requirement checked
-3. **README Â§12** â€” attack scenario table (security module requirement)
-4. **OTP registration** â€” email â†’ backend log â†’ JWT â†’ dashboard
-5. **Swagger** â€” http://localhost:8000/docs â€” full typed API
-6. **Encrypted chat** â€” two browsers, ciphertext in Network tab
-7. **MongoDB** â€” show `users` and `messages` collections (ciphertext only)
-8. **CI badge** â€” GitHub Actions passing
-9. **Docker** â€” `docker compose up` â€” full stack in one command
-10. **docs/IMPLEMENTATION-MAP.md** â€” every section maps to code
+Follow [DEMO-SCRIPT.md](DEMO-SCRIPT.md) for the full walkthrough. Key evidence points:
 
-**Closing line for professor:**
-> "This is a production-oriented skeleton â€” real auth, real database, real encryption, real CI/CD. We are at 70% with AWS deployment and full test suite completing by 19 July."
+1. **GitHub** — commit history and CI badge
+2. **This file** — requirement traceability
+3. **README §12** — attack scenario table
+4. **OTP flow** — email → JWT → dashboard
+5. **OpenAPI** — http://localhost:8000/docs
+6. **Encrypted chat** — two browsers, ciphertext in Network tab
+7. **MongoDB** — `users` and `messages` collections (ciphertext only)
+8. **Docker** — `docker compose up` for full stack
+9. **Implementation map** — `docs/IMPLEMENTATION-MAP.md`
+10. **Peer analysis** — `docs/PEER-SYSTEM-ANALYSIS.md`
 

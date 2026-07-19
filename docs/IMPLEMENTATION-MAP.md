@@ -1,6 +1,6 @@
 # StudySafe — Implementation Map
 
-This document maps **every README section**, **docs file**, and **demo feature** to the exact code that implements it. Use this when explaining the project to your professor or preparing the submission report.
+This document maps **every README section**, **docs file**, and **demo feature** to the exact code that implements it.
 
 ---
 
@@ -18,7 +18,7 @@ This document maps **every README section**, **docs file**, and **demo feature**
 | 6. JWT issued | Token returned to frontend, stored in localStorage | `backend/app/auth/jwt.py` → `frontend/src/api/client.ts` |
 | 7. Protected routes | All room/chat APIs require `Authorization: Bearer <token>` | `backend/app/auth/dependencies.py` |
 
-**Demo OTP flow for professor:**
+**Demo OTP flow:**
 1. Start MongoDB + backend + frontend
 2. Open http://localhost:5173 → enter `alice@college.ie`
 3. Show backend terminal: `[DEV OTP] email=alice@college.ie code=123456`
@@ -69,7 +69,7 @@ This document maps **every README section**, **docs file**, and **demo feature**
 
 ---
 
-## Feature → code map (for 70% demo)
+## Feature → code map
 
 | Feature | Status | Backend | Frontend | How to demo |
 |---------|--------|---------|----------|-------------|
@@ -88,7 +88,7 @@ This document maps **every README section**, **docs file**, and **demo feature**
 | CI pipeline | ✅ Done | `.github/workflows/ci.yml` | same workflow | GitHub Actions tab |
 | AWS production deploy | ⏳ Planned | `deploy/README.md` | — | Explain as Phase 2 by 19th |
 | Message history on join | ✅ Done | `ChatRoom.tsx` + `fetchMessageHistory` | Reload room — prior messages appear |
-| AI chat links filled | ⏳ Tonight | — | `docs/AI-CHAT-LOGS.md` — paste 12 Cursor share URLs |
+| AI chat links filled | ⏳ Pending | — | `docs/AI-CHAT-LOGS.md` — paste 12 Cursor share URLs |
 
 ---
 
@@ -133,7 +133,7 @@ This document maps **every README section**, **docs file**, and **demo feature**
 
 ---
 
-## Suggested professor walkthrough (70% demo)
+## Suggested demo walkthrough
 
 1. **Git history** — show 25+ commits, steady progress
 2. **README §12** — attack scenario table
