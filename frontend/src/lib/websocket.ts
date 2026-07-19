@@ -1,4 +1,4 @@
-import { getToken } from "../api/client";
+﻿import { getToken } from "../api/client";
 
 export function wsUrl(roomId: string): string {
   const token = getToken();
@@ -18,7 +18,7 @@ export interface RealtimeConnection {
   send: (payload: string) => void;
   sendTyping: (isTyping: boolean) => void;
   close: () => void;
-  get readyState: number;
+  readonly readyState: number;
 }
 
 export function connectWebSocket(
@@ -79,3 +79,4 @@ export function connectWebSocket(
     },
   };
 }
+
