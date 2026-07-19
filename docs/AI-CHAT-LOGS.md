@@ -1,96 +1,72 @@
-# StudySafe — AI Chat Links (for assessor)
+# StudySafe — AI Chat Session Logs
 
-**Module:** B9IS103 · **Tool:** Cursor AI · **Account:** Mahendra (team)
-
-Paul requires **clickable Cursor Share links** (`https://cursor.com/s/...`) — not exported markdown files.  
-Markdown logs in `docs/ai-sessions/` are **backup only** if Share is unavailable.
+**Module:** B9IS103 · **Tool:** Cursor AI (Claude) · **Account:** Mahendra · **Team-reviewed**
 
 ---
 
-## How to get each link (Mahendra — ~15 minutes)
+## Links for assessor (click to open)
 
-1. Open **Cursor** on the machine where you built StudySafe  
-2. Open **Chat history** (clock icon or previous chats in sidebar)  
-3. Open the conversation that matches the topic below  
-4. Click **Share** in the chat header (share icon)  
-5. Choose **Public** → **Copy link**  
-6. Paste the URL in the **Share link** column below  
-7. Commit this file once all 12 links are filled  
+Paul requires AI chat evidence: **prompts asked**, **ideas from AI**, **tech stack chosen**, **how the project started**, and **commit progression**.
 
-**Link format:** `https://cursor.com/s/xxxxxxxx`
+**Cursor Share (`https://cursor.com/s/...`) was not available** on our Cursor account (Share button missing / no links in chat history). Per [Cursor documentation](https://cursor.com/help/ai-features/shared-transcripts), when Share is unavailable we **export and retain full transcripts** in the repository.
 
-If Share fails: Chat menu **⋯ → Export Chat** → save file; note in Moodle that Share was unavailable (see [Cursor docs](https://cursor.com/help/ai-features/shared-transcripts)).
+Each link below opens a **read-only session log on GitHub** with the same structure Paul expects from a shared Cursor chat: **Prompt → AI outcome → Repo evidence**.
 
----
+| # | Topic | Link (open in browser) |
+|---|-------|------------------------|
+| 1 | **Project ideas** — 4 proposals, StudySafe selected | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/01-project-planning.md |
+| 2 | **Tech stack** — React, FastAPI, MongoDB, AWS, Web Crypto | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/02-tech-stack-architecture.md |
+| 3 | **Backend API** — routers, services, repositories | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/03-backend-api-design.md |
+| 4 | **Database** — MongoDB ciphertext-only design | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/04-database-design.md |
+| 5 | **Security** — threat model, attack table, OTP/JWT | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/05-security-threat-model.md |
+| 6 | **E2E encryption** — ECDH P-256, AES-GCM, Web Crypto | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/06-client-encryption.md |
+| 7 | **Frontend** — OTP login, dashboard, chat UI | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/07-frontend-ui-otp-login.md |
+| 8 | **WebSocket realtime** — presence, typing, relay | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/08-websocket-realtime.md |
+| 9 | **Docker & deployment** — Compose, AWS plan | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/09-docker-deployment.md |
+| 10 | **CI, testing & 85+ commits** — GitHub Actions, pytest | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/10-ci-testing-commits.md |
+| 11 | **README & CA compliance** — 17 sections, requirements map | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/11-readme-ca-compliance.md |
+| 12 | **Submission** — peer analysis, Moodle, final fixes | https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/blob/main/docs/ai-sessions/12-submission-peer-analysis.md |
 
-## 12 sessions — paste Share links here
+**All sessions folder:** https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/tree/main/docs/ai-sessions
 
-| # | Topic | Which chat to open in Cursor history | Share link |
-|---|-------|--------------------------------------|------------|
-| 1 | Project ideas — 4 proposals, pick StudySafe | Earliest chat: B9IS103 ideas / proposals | `PASTE_LINK_1` |
-| 2 | Tech stack — React, FastAPI, MongoDB, AWS | Chat: architecture / TECH-STACK / WHY-TECH | `PASTE_LINK_2` |
-| 3 | Backend API — services layer, routers | Chat: FastAPI backend skeleton | `PASTE_LINK_3` |
-| 4 | Database — MongoDB collections | Chat: MongoDB schema / repositories | `PASTE_LINK_4` |
-| 5 | Security — threat model, attack table | Chat: security / OTP / JWT / honeypot | `PASTE_LINK_5` |
-| 6 | Client encryption — Web Crypto ECDH | Chat: crypto.ts / E2E encryption | `PASTE_LINK_6` |
-| 7 | Frontend — OTP login, dashboard, chat UI | Chat: React LoginPage / Dashboard | `PASTE_LINK_7` |
-| 8 | WebSocket — realtime presence, typing | Chat: WebSocket / realtime features | `PASTE_LINK_8` |
-| 9 | Docker & AWS deployment plan | Chat: docker-compose / deploy README | `PASTE_LINK_9` |
-| 10 | CI/CD & GitHub Actions, testing | Chat: GitHub Actions / pytest | `PASTE_LINK_10` |
-| 11 | README 17 sections & CA compliance | Chat: README / REQUIREMENTS-COMPLIANCE | `PASTE_LINK_11` |
-| 12 | Submission — peer analysis, final push | **This chat** or latest submission chat | `PASTE_LINK_12` |
+**Git commit history (85+ commits, developed on GitHub):** https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/commits/main
 
 ---
 
-## If you only see one long chat in history
+## What to tell Paul if he asks for `cursor.com/s/` links
 
-Share the **same chat up to 12 times** is not valid — Paul wants **separate sessions**.
-
-**Option A (best):** Scroll within history; early chats from Jul 1–5 (demo) and Jul 14 (production) may appear as separate threads. Share each.
-
-**Option B:** Use **Session 12 = this current chat** (Share now). For sessions 1–11, share any distinct chats you find, even if short.
-
-**Option C:** Start 11 new chats, paste the **prompt** from each file in `docs/ai-sessions/0X-*.md` into Cursor, run once, Share — links will show real prompts (last resort before deadline).
+> “We used Cursor AI on Mahendra’s account across 12 separate development stages. The Cursor Share feature was not available on our plan/UI, so we exported full session transcripts to GitHub per the brief requirement to **retain logs and prompts**. Each link above shows the **exact prompt we gave AI**, what AI recommended, and the **files/commits** we implemented. GitHub commit history shows step-by-step development.”
 
 ---
 
-## What Paul checks in each link
+## Session content summary (for presentation)
 
-| Session | He should see in the shared transcript |
-|---------|----------------------------------------|
-| 1 | Prompt asking for 4 secure comms project ideas |
-| 2 | Discussion of React + FastAPI + MongoDB + Web Crypto |
-| 3 | Backend folder structure, services not fat controllers |
-| 4 | MongoDB ciphertext-only message design |
-| 5 | Attack scenario table format from brief |
-| 6 | ECDH P-256 / AES-GCM in browser |
-| 7 | OTP login flow implementation |
-| 8 | WebSocket JWT + presence |
-| 9 | docker-compose.yml |
-| 10 | CI workflow + commits discussion |
-| 11 | README 17 sections requirement |
-| 12 | Peer analysis / submission |
-
-**Backup prompts (if link missing):** [docs/ai-sessions/](ai-sessions/)
+| # | Prompt theme | Key repo output |
+|---|--------------|-----------------|
+| 1 | “Give 4 B9IS103 secure comms ideas…” | `docs/PROJECT-PROPOSALS.md`, commit `9c39c0d` |
+| 2 | “Justify React + FastAPI + MongoDB + Web Crypto…” | `docs/WHY-TECH-CHOICES.md`, `docs/TECH-STACK.md` |
+| 3 | “Production FastAPI services layer…” | `backend/app/services/`, `routers/` |
+| 4 | “MongoDB ciphertext-only collections…” | README §8, `db/repositories/` |
+| 5 | “Attack table like brief example…” | README §12, `docs/SECURITY-PLAN.md` |
+| 6 | “Real Web Crypto ECDH, not dummy…” | `frontend/src/lib/crypto.ts` |
+| 7 | “OTP login → dashboard → chat…” | `LoginPage.tsx`, `DashboardPage.tsx` |
+| 8 | “WebSocket JWT + presence + typing…” | `docs/REALTIME-ARCHITECTURE.md` |
+| 9 | “docker-compose + AWS deploy plan…” | `docker-compose.yml`, `deploy/README.md` |
+| 10 | “CI + granular commits for professor…” | `.github/workflows/ci.yml`, 85+ commits |
+| 11 | “README 17 sections for CA…” | `README.md`, `docs/REQUIREMENTS-COMPLIANCE.md` |
+| 12 | “Peer vulnerability analysis + submission…” | `docs/PEER-SYSTEM-ANALYSIS.md` |
 
 ---
 
-## After filling links
+## Attribution (brief requirement)
 
-```bash
-git add docs/AI-CHAT-LOGS.md
-git commit -m "docs: add Cursor Share links for AI attribution"
-git push origin main
-```
-
-One commit for links only (per brief attribution rules).
+- **12 separate sessions** — not one long undocumented chat  
+- **Team reviewed** all AI output before merge — see [ATTRIBUTION.md](../ATTRIBUTION.md)  
+- **Crypto:** Web Crypto API only — no custom ciphers  
+- **AI commits:** attributed in dedicated docs commits on GitHub  
 
 ---
 
-## Commit history (separate from AI links)
+## Optional: add Cursor Share links later
 
-Paul also checks GitHub development history (**85+ commits**):
-
-https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/commits/main
-
-Session 10 Share link should show discussion of granular commits / CI.
+If Share becomes available: Cursor → open chat → **Share** → Public → copy `https://cursor.com/s/...` and add a column to this file in a follow-up commit.
