@@ -1,4 +1,4 @@
-export interface User {
+﻿export interface User {
   id: string;
   email: string;
   display_name: string;
@@ -57,4 +57,6 @@ export interface TypingEvent {
   is_typing: boolean;
 }
 
+// Re-exported for UI components (also defined in lib/websocket).
 export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "reconnecting" | "error";
+

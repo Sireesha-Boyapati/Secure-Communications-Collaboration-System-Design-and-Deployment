@@ -1,8 +1,8 @@
 ﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchMessageHistory, fetchRoomKeys, registerPublicKey } from "../../api/rooms";
 import { decryptFromSender, encryptForRecipient, generateKeyPair } from "../../lib/crypto";
-import { connectWebSocket, type ConnectionStatus, type RealtimeConnection } from "../../lib/websocket";
-import type { ChatMessage, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
+import { connectWebSocket, type RealtimeConnection } from "../../lib/websocket";
+import type { ChatMessage, ConnectionStatus, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 import { useOnlineUsers } from "../../hooks/useOnlineUsers";
 import ConnectionBadge from "./ConnectionBadge";
@@ -349,5 +349,6 @@ export default function ChatRoom({ roomId, username }: Props) {
     </div>
   );
 }
+
 
 
