@@ -8,6 +8,13 @@ from app.config import settings
 from app.db.client import get_database
 
 
+def _utc(dt: datetime) -> datetime:
+    """Normalize MongoDB datetimes for comparison (may be naive UTC)."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 class OtpRepository:
     @property
     def collection(self):
@@ -39,7 +46,7 @@ class OtpRepository:
         if doc.get("attempts", 0) >= 5:
             return False
 
-        if datetime.now(timezone.utc) > doc["expires_at"]:
+        if _utc(doc["expires_at"]) < datetime.now(timezone.utc):
             return False
 
         if doc["code"] != code:
