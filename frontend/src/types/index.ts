@@ -45,3 +45,16 @@ export interface KeyPairBundle {
   publicJwk: JsonWebKey;
   fingerprint: string;
 }
+
+export interface PresenceEvent {
+  type: "presence";
+  online: string[];
+}
+
+export interface TypingEvent {
+  type: "typing";
+  username: string;
+  is_typing: boolean;
+}
+
+export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "reconnecting" | "error";
