@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchMessageHistory, fetchRoomKeys, registerPublicKey } from "../../api/rooms";
 import { decryptFromSender, encryptForRecipient, generateKeyPair } from "../../lib/crypto";
-import { connectWebSocket } from "../../lib/websocket";
+import { connectWebSocket, type ConnectionStatus, type RealtimeConnection } from "../../lib/websocket";
 import type { ChatMessage, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
+import { useAutoScroll } from "../../hooks/useAutoScroll";
+import ConnectionBadge from "./ConnectionBadge";
+import OnlineUsers from "./OnlineUsers";
+import TypingIndicator from "./TypingIndicator";
 
 interface Props {
   roomId: string;
@@ -13,11 +17,15 @@ export default function ChatRoom({ roomId, username }: Props) {
   const [keys, setKeys] = useState<KeyPairBundle | null>(null);
   const [peers, setPeers] = useState<PublicKeyEntry[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([username]);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [input, setInput] = useState("");
-  const [status, setStatus] = useState("connecting");
+  const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [error, setError] = useState("");
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsRef = useRef<RealtimeConnection | null>(null);
   const peerMapRef = useRef<Map<string, PublicKeyEntry>>(new Map());
+  const typingTimeoutRef = useRef<number | null>(null);
+  const scrollRef = useAutoScroll(messages);
 
   const loadPeers = useCallback(async () => {
     const data = await fetchRoomKeys(roomId);
@@ -101,6 +109,22 @@ export default function ChatRoom({ roomId, username }: Props) {
   const handleIncoming = useCallback(
     async (raw: unknown, myKeys: KeyPairBundle) => {
       const data = raw as Record<string, unknown>;
+
+      if (data.type === "presence" && Array.isArray(data.online)) {
+        setOnlineUsers(data.online as string[]);
+        return;
+      }
+
+      if (data.type === "typing" && typeof data.username === "string") {
+        const who = data.username as string;
+        const isTyping = Boolean(data.is_typing);
+        setTypingUsers((prev) => {
+          if (isTyping) return prev.includes(who) ? prev : [...prev, who];
+          return prev.filter((u) => u !== who);
+        });
+        return;
+      }
+
       if (data.type === "system") {
         await loadPeers();
         setMessages((prev) => [
@@ -130,6 +154,8 @@ export default function ChatRoom({ roomId, username }: Props) {
 
       const mine = payload.recipients.find((r) => r.to === username);
       if (!mine) return;
+
+      setTypingUsers((prev) => prev.filter((u) => u !== payload.from));
 
       try {
         const text = await decryptFromSender(
@@ -177,10 +203,14 @@ export default function ChatRoom({ roomId, username }: Props) {
         await loadPeers();
         await loadHistory(keyBundle);
 
-        const ws = connectWebSocket(roomId, (msg) => {
-          void handleIncoming(msg, keyBundle);
-        }, setStatus);
-        wsRef.current = ws;
+        const conn = connectWebSocket(
+          roomId,
+          (msg) => {
+            void handleIncoming(msg, keyBundle);
+          },
+          setStatus,
+        );
+        wsRef.current = conn;
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to join room");
       }
@@ -192,8 +222,19 @@ export default function ChatRoom({ roomId, username }: Props) {
     };
   }, [roomId, username, handleIncoming, loadPeers, loadHistory]);
 
+  const handleInputChange = (value: string) => {
+    setInput(value);
+    const conn = wsRef.current;
+    if (!conn || conn.readyState !== WebSocket.OPEN) return;
+
+    conn.sendTyping(true);
+    if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = window.setTimeout(() => conn.sendTyping(false), 1500);
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || !keys || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    const conn = wsRef.current;
+    if (!input.trim() || !keys || !conn || conn.readyState !== WebSocket.OPEN) return;
 
     const peerList = peers.length
       ? peers
@@ -204,6 +245,7 @@ export default function ChatRoom({ roomId, username }: Props) {
       return;
     }
 
+    conn.sendTyping(false);
     const timestamp = new Date().toISOString();
     const recipients = await Promise.all(
       peerList.map(async (peer) => {
@@ -223,7 +265,7 @@ export default function ChatRoom({ roomId, username }: Props) {
       recipients,
     };
 
-    wsRef.current.send(JSON.stringify(payload));
+    conn.send(JSON.stringify(payload));
 
     setMessages((prev) => [
       ...prev,
@@ -243,12 +285,14 @@ export default function ChatRoom({ roomId, username }: Props) {
     <div className="chat-room">
       <header className="chat-header">
         <div>
-          <h2>Encrypted room</h2>
+          <h2>Realtime encrypted room</h2>
           <p className="muted">
-            {username} · WebSocket: <span className={`status-${status}`}>{status}</span>
+            {username} · <ConnectionBadge status={status} />
           </p>
         </div>
       </header>
+
+      <OnlineUsers online={onlineUsers} currentUser={username} />
 
       {keys && (
         <div className="fingerprint-box">
@@ -258,7 +302,7 @@ export default function ChatRoom({ roomId, username }: Props) {
       )}
 
       <div className="peers-box">
-        <strong>Peers:</strong>{" "}
+        <strong>Registered keys:</strong>{" "}
         {peers.length === 0 ? (
           <span className="muted">waiting for others…</span>
         ) : (
@@ -282,14 +326,17 @@ export default function ChatRoom({ roomId, username }: Props) {
             <p>{m.text}</p>
           </li>
         ))}
+        <div ref={scrollRef} />
       </ul>
+
+      <TypingIndicator typingUsers={typingUsers} />
 
       <div className="composer">
         <input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && void sendMessage()}
-          placeholder="Type encrypted message…"
+          placeholder="Type encrypted message — peers see typing indicator in realtime…"
         />
         <button type="button" onClick={() => void sendMessage()}>
           Send encrypted
