@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchMessageHistory, fetchRoomKeys, registerPublicKey } from "../../api/rooms";
 import { decryptFromSender, encryptForRecipient, generateKeyPair } from "../../lib/crypto";
 import { connectWebSocket, type ConnectionStatus, type RealtimeConnection } from "../../lib/websocket";
 import type { ChatMessage, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
+import { useOnlineUsers } from "../../hooks/useOnlineUsers";
 import ConnectionBadge from "./ConnectionBadge";
 import OnlineUsers from "./OnlineUsers";
 import TypingIndicator from "./TypingIndicator";
@@ -44,7 +45,7 @@ export default function ChatRoom({ roomId, username }: Props) {
         return {
           id: crypto.randomUUID(),
           from: username,
-          text: "[your encrypted message — sent to room]",
+          text: "[your encrypted message â€” sent to room]",
           timestamp: payload.timestamp,
           encrypted: true,
         };
@@ -74,7 +75,7 @@ export default function ChatRoom({ roomId, username }: Props) {
         return {
           id: crypto.randomUUID(),
           from: payload.from,
-          text: "[encrypted history — verify key fingerprints]",
+          text: "[encrypted history â€” verify key fingerprints]",
           timestamp: payload.timestamp,
           encrypted: true,
         };
@@ -180,7 +181,7 @@ export default function ChatRoom({ roomId, username }: Props) {
           {
             id: crypto.randomUUID(),
             from: payload.from,
-            text: "[decryption failed — verify key fingerprints]",
+            text: "[decryption failed â€” verify key fingerprints]",
             timestamp: new Date().toISOString(),
             encrypted: true,
           },
@@ -241,7 +242,7 @@ export default function ChatRoom({ roomId, username }: Props) {
       : Array.from(peerMapRef.current.values()).filter((p) => p.username !== username);
 
     if (!peerList.length) {
-      setError("No other users in room — invite a teammate to join.");
+      setError("No other users in room â€” invite a teammate to join.");
       return;
     }
 
@@ -287,7 +288,7 @@ export default function ChatRoom({ roomId, username }: Props) {
         <div>
           <h2>Realtime encrypted room</h2>
           <p className="muted">
-            {username} · <ConnectionBadge status={status} />
+            {username} Â· <ConnectionBadge status={status} />
           </p>
         </div>
       </header>
@@ -297,14 +298,14 @@ export default function ChatRoom({ roomId, username }: Props) {
       {keys && (
         <div className="fingerprint-box">
           <strong>Your key fingerprint:</strong> <code>{keys.fingerprint}</code>
-          <span className="muted"> — verify on Zoom to prevent MITM</span>
+          <span className="muted"> â€” verify on Zoom to prevent MITM</span>
         </div>
       )}
 
       <div className="peers-box">
         <strong>Registered keys:</strong>{" "}
         {peers.length === 0 ? (
-          <span className="muted">waiting for others…</span>
+          <span className="muted">waiting for othersâ€¦</span>
         ) : (
           peers.map((p) => (
             <span key={p.username} className="peer-chip">
@@ -320,8 +321,8 @@ export default function ChatRoom({ roomId, username }: Props) {
         {messages.map((m) => (
           <li key={m.id} className={m.from === username ? "mine" : m.from === "system" ? "system" : ""}>
             <span className="meta">
-              {m.from} · {new Date(m.timestamp).toLocaleTimeString()}
-              {m.encrypted ? " 🔒" : ""}
+              {m.from} Â· {new Date(m.timestamp).toLocaleTimeString()}
+              {m.encrypted ? " ðŸ”’" : ""}
             </span>
             <p>{m.text}</p>
           </li>
@@ -336,7 +337,7 @@ export default function ChatRoom({ roomId, username }: Props) {
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && void sendMessage()}
-          placeholder="Type encrypted message — peers see typing indicator in realtime…"
+          placeholder="Type encrypted message â€” peers see typing indicator in realtimeâ€¦"
         />
         <button type="button" onClick={() => void sendMessage()}>
           Send encrypted
