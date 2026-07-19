@@ -4,6 +4,16 @@
 
 ---
 
+## Cursor Share not available
+
+We checked Cursor chat history — **no Share button** (`https://cursor.com/s/...`) on our account/plan. This matches cases where Shared Transcripts require Teams/Enterprise or a working Share feature on Pro.
+
+**What we did instead (brief-compliant):**
+- **12 separate session logs** with prompts + AI outcomes → [docs/ai-sessions/](ai-sessions/)
+- Optional: Chat menu **⋯ → Export Chat** → save to SharePoint meeting folder if Paul wants raw exports
+
+---
+
 ## Links for assessor (click to open)
 
 Paul requires AI chat evidence: **prompts asked**, **ideas from AI**, **tech stack chosen**, **how the project started**, and **commit progression**.
@@ -69,4 +79,6 @@ Each link below opens a **read-only session log on GitHub** with the same struct
 
 ## Optional: add Cursor Share links later
 
-If Share becomes available: Cursor → open chat → **Share** → Public → copy `https://cursor.com/s/...` and add a column to this file in a follow-up commit.
+If Share becomes available: Cursor → open chat → **Share** → Public → copy `https://cursor.com/s/...` and add to this file.
+
+**Meeting recordings & MoM:** [DBS SharePoint — CA project security](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)

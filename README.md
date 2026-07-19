@@ -11,6 +11,7 @@
 | **Team** | Mahendra · Sireesha · Oree · Sudheer |
 | **Stack** | React · FastAPI · MongoDB · AWS |
 | **Repository** | [GitHub](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment) |
+| **Meetings (MoM, recordings)** | [DBS SharePoint — CA project security](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) |
 
 ---
 
@@ -478,6 +479,8 @@ Fill peer project names and findings when groups are assigned.
 
 | Document | Purpose |
 |----------|---------|
+| [Team SharePoint — meetings & recordings](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) | MoM, meeting transcripts, session recordings |
+| [docs/meetings/](docs/meetings/) | Local MoM summaries (e.g. idea selection) |
 | [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) | Live demo walkthrough (local setup → two-user encrypted chat) |
 | [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | Brief requirements mapped to code |
 | [docs/IMPLEMENTATION-MAP.md](docs/IMPLEMENTATION-MAP.md) | README sections and features → source files |
