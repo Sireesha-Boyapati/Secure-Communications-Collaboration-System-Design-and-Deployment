@@ -284,12 +284,15 @@ export default function ChatRoom({ roomId, username }: Props) {
 
   return (
     <div className="chat-room">
-      <header className="chat-header">
-        <div>
+<header className="chat-header">
+        <div className="chat-header-main">
           <h2>Realtime encrypted room</h2>
-          <p className="muted">
-            {username} Â· <ConnectionBadge status={status} />
+          <p className="muted chat-header-meta">
+            {username} · end-to-end encrypted relay
           </p>
+        </div>
+        <div className="chat-header-badges">
+          <ConnectionBadge status={status} />
         </div>
       </header>
 
@@ -346,3 +349,5 @@ export default function ChatRoom({ roomId, username }: Props) {
     </div>
   );
 }
+
+

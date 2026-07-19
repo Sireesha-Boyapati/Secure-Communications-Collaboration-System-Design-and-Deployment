@@ -1,4 +1,4 @@
-/* Auth */
+﻿/* Auth */
 .auth-page {
   min-height: 100vh;
   display: grid;
@@ -152,6 +152,10 @@
   margin-bottom: 0.5rem;
 }
 
+.chat-header-main { flex: 1; min-width: 0; }
+.chat-header-meta { margin: 0.25rem 0 0; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.chat-header-badges { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.chat-header-label { font-size: 0.85rem; }
 .chat-header h2 { margin: 0; }
 
 .status-connected { color: #16a34a; font-weight: 600; }
@@ -317,3 +321,4 @@
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-4px); }
 }
+
