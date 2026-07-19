@@ -156,3 +156,19 @@ This document maps **every README section**, **docs file**, and **demo feature**
 | Fill 12 AI chat links | `docs/AI-CHAT-LOGS.md` | Replace `YOUR_LINK_HERE` |
 | More integration tests | §16 | `backend/tests/test_rooms.py` |
 | SES production email | `backend/app/services/email_service.py` | Set AWS env vars |
+
+---
+
+## Realtime feature → file map
+
+| Capability | Backend | Frontend |
+|------------|---------|----------|
+| WebSocket protocol events | `backend/app/websocket/events.py`, `backend/app/main.py` | `frontend/src/lib/websocket.ts`, `frontend/src/types/index.ts` |
+| Connection / presence manager | `backend/app/websocket/manager.py` | `frontend/src/components/chat/OnlineUsers.tsx`, `frontend/src/api/rooms.ts` (`fetchOnlineUsers`) |
+| Online users REST snapshot | `backend/app/routers/rooms.py` (`GET .../online`) | `frontend/src/api/rooms.ts` |
+| Typing indicators | `backend/app/websocket/manager.py`, `backend/app/main.py` | `frontend/src/components/chat/TypingIndicator.tsx`, `ChatRoom.tsx` |
+| Auto-reconnect | — | `frontend/src/lib/websocket.ts` |
+| Connection status UI | — | `frontend/src/components/chat/ConnectionBadge.tsx` |
+| Encrypted history on join | `backend/app/routers/rooms.py` (messages) | `frontend/src/api/rooms.ts` (`fetchMessageHistory`), `ChatRoom.tsx` |
+| Architecture notes | `docs/REALTIME-ARCHITECTURE.md` | — |
+

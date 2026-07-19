@@ -96,6 +96,14 @@ Student teams coordinate daily on deadlines, credentials, and assignment splits 
 6. On send: encrypt for each peer → JSON payload → WebSocket → server stores ciphertext → broadcast
 7. Recipients decrypt locally with their private key
 
+### Realtime Features
+
+- **Online presence** — see who is connected in each room (WebSocket + REST snapshot)
+- **Typing indicators** — ephemeral typing events relayed without persisting content
+- **Auto-reconnect** — WebSocket client retries with backoff after network drops
+- **Encrypted history** — ciphertext message history loaded and decrypted on room join
+
+
 ### Layered backend
 
 ```
