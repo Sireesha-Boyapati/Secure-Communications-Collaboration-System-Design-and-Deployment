@@ -31,6 +31,6 @@ async def test_honeypot_admin_users(client):
 
 
 @pytest.mark.asyncio
-async def test_otp_request_valid_email(client):
-    res = await client.post("/api/auth/otp/request", json={"email": "integration@test.ie"})
-    assert res.status_code == 204
+async def test_online_users_requires_auth(client):
+    res = await client.get("/api/rooms/fake-room-id/online")
+    assert res.status_code == 401
