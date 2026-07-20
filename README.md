@@ -8,7 +8,6 @@
 |---|---|
 | **Live application** | https://16.16.138.41 |
 | **API documentation** | https://16.16.138.41/docs |
-| **Module** | B9IS103 Computer Systems Security |
 | **Team** | Mahendra · Sireesha · Oree · Sudheer |
 | **Team workspace** | [DBS SharePoint — MoM & recordings](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) |
 
@@ -300,15 +299,16 @@ GitHub Actions runs both suites on every push and pull request to `main`.
 | [GitHub repository](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment) | Source code and issue tracking |
 | [Live application](https://16.16.138.41) | Production deployment on AWS EC2 |
 | [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments) | Meeting minutes and session recordings |
-| [docs/REQUIREMENTS-COMPLIANCE.md](docs/REQUIREMENTS-COMPLIANCE.md) | CA requirement traceability matrix |
-| [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) | Lecturer demonstration script |
-| [docs/PEER-SYSTEM-ANALYSIS.md](docs/PEER-SYSTEM-ANALYSIS.md) | Peer vulnerability analysis |
-| [docs/PENETRATION-TEST.md](docs/PENETRATION-TEST.md) | Manual penetration test notes |
-| [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) · [ATTRIBUTION.md](ATTRIBUTION.md) | AI tool usage and attribution |
+| [docs/STUDYSAFE.md](docs/STUDYSAFE.md) | Project overview and feature set |
+| [docs/TECH-STACK.md](docs/TECH-STACK.md) | Technology stack and architecture |
+| [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md) | Trust model and security controls |
+| [docs/REPO-SECURITY.md](docs/REPO-SECURITY.md) | GitHub access control and branch protection |
+| [docs/DEPLOYMENT-OPTIONS.md](docs/DEPLOYMENT-OPTIONS.md) | Local Docker vs AWS deployment |
 | [deploy/aws/DEPLOY-AWS.md](deploy/aws/DEPLOY-AWS.md) | Extended AWS deployment guide |
+| [ATTRIBUTION.md](ATTRIBUTION.md) | Libraries, references, and team contributions |
 
 ---
 
 ## License
 
-Academic project — B9IS103, Dublin Business School. Not licensed for commercial use.
+StudySafe — secure communications platform. Not licensed for commercial use.

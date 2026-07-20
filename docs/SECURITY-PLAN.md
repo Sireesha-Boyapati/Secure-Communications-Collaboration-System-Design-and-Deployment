@@ -1,21 +1,29 @@
-# StudySafe — Security Plan (summary)
+# StudySafe — Security Plan
 
-See full threat model in project report. This file tracks implementation security.
+Implementation security model for StudySafe. The full threat analysis is in the root [README.md](../README.md).
+
+---
 
 ## Trust model
 
-- **Trust:** Browser, Web Crypto, TLS, email OTP delivery, 4 team members only
-- **Do not trust:** AWS server, MongoDB, network except TLS, external GitHub users
+| Trusted | Not trusted |
+|---------|-------------|
+| Browser, Web Crypto API, TLS | AWS server, MongoDB, network (except TLS) |
+| Email OTP delivery channel | External GitHub users without repo access |
 
-## Layers
+---
 
-1. E2E encryption (client) — primary
-2. JWT authentication — API access
-3. Rate limiting — brute force protection
-4. GitHub branch protection — repo integrity (only 4 members can merge)
-5. CODEOWNERS — mandatory review on security files
-6. Honeypot decoy JSON — supplementary attack detection
-7. Docker service isolation — limits blast radius between MongoDB, API, frontend
+## Security layers
+
+1. **E2E encryption (client)** — primary confidentiality control
+2. **JWT authentication** — API and WebSocket access
+3. **Rate limiting** — brute-force and abuse prevention
+4. **GitHub branch protection** — repository integrity
+5. **CODEOWNERS** — mandatory review on security-sensitive files
+6. **Honeypot decoy** — reconnaissance detection
+7. **Docker service isolation** — limits blast radius between services
+
+---
 
 ## Golden rule
 
@@ -23,36 +31,44 @@ See full threat model in project report. This file tracks implementation securit
 Plaintext must NEVER reach backend/ or MongoDB
 ```
 
-## Repository security (4 members only)
+---
 
-Only Mahendra, Sireesha, Oree, and Sudheer may push code.
+## Repository access
 
-| Control | Status | Doc |
-|---------|--------|-----|
-| Limit GitHub collaborators to 4 | Manual setup required | [REPO-SECURITY.md](REPO-SECURITY.md) |
-| Branch protection on `main` | Manual setup required | [REPO-SECURITY.md](REPO-SECURITY.md) |
-| PR required for all merges | Manual setup required | [REPO-SECURITY.md](REPO-SECURITY.md) |
+Only Mahendra, Sireesha, Oree, and Sudheer may push code. See [REPO-SECURITY.md](REPO-SECURITY.md) for GitHub setup.
+
+| Control | Status | Reference |
+|---------|--------|-----------|
+| Limit collaborators to team | Manual setup | [REPO-SECURITY.md](REPO-SECURITY.md) |
+| Branch protection on `main` | Manual setup | [REPO-SECURITY.md](REPO-SECURITY.md) |
 | CODEOWNERS auto-review | Implemented | `.github/CODEOWNERS` |
 | CI must pass before merge | Implemented | `.github/workflows/ci.yml` |
 
-## Server attack prevention
+---
 
-| Attack | Protection |
-|--------|------------|
-| Outsider pushes malicious code | Not a collaborator + branch protection |
-| OTP brute force | Rate limit 5/min |
-| API flooding | Rate limit 60/min |
-| Unauthorized API access | JWT required |
-| WebSocket hijacking | JWT + room membership |
-| Server reads messages | E2E encryption — ciphertext only |
-| Admin endpoint probing | Honeypot logs attacker IP |
-| Direct server SSH attack | AWS security groups (production) |
+## Application attack prevention
 
-## Deployment
+| Attack | Protection | Location |
+|--------|------------|----------|
+| Brute-force OTP | Rate limit | `backend/app/security/rate_limit.py` |
+| API flooding | 60 req/min default | `backend/app/security/rate_limit.py` |
+| Unauthorized API access | JWT on protected routes | `backend/app/auth/dependencies.py` |
+| WebSocket hijacking | JWT + room membership | `backend/app/main.py` |
+| Reconnaissance | Honeypot `/api/admin/*` | `backend/app/security/honeypot.py` |
+| XSS / clickjacking | Security headers | `backend/app/security/middleware.py` |
+| Server data breach | E2E — ciphertext only | `frontend/src/lib/crypto.ts` |
+| Large payload DoS | 64 KB WebSocket cap | `backend/app/main.py` |
+| Injection | Pydantic validation | `backend/app/models/schemas.py` |
 
-Docker Compose is used for **local development isolation** — not as the only deployment option.
-See [DEPLOYMENT-OPTIONS.md](DEPLOYMENT-OPTIONS.md) for alternatives (manual, AWS EC2, Podman).
+---
 
-## Honeypot
+## Production hardening checklist
 
-Unauthorized `GET /api/admin/users` returns fake user list; IP logged to server console (CloudWatch in production).
+| Control | Action |
+|---------|--------|
+| SSH | Key-based only; disable password login |
+| Security groups | Allow 443 (HTTPS) and 22 (SSH from admin IP only) |
+| Secrets | `JWT_SECRET`, `MONGODB_URI` in `.env` — never in git |
+| TLS | HTTPS on nginx (self-signed for demo; Let's Encrypt for production) |
+| MongoDB | Atlas IP whitelist — EC2 public IP only |
+| Logs | Monitor honeypot triggers in application logs |

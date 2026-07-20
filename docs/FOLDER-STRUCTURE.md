@@ -1,6 +1,6 @@
 # StudySafe — Folder Structure
 
-**Project:** StudySafe (B9IS103) — Production skeleton
+Repository layout and layer responsibilities.
 
 ---
 
@@ -9,10 +9,10 @@
 ```
 Secure-Communications-Collaboration-System-Design-and-Deployment/
 │
-├── README.md                         # Full project documentation (17 sections)
-├── ATTRIBUTION.md                    # AI use, libraries, team contributions
-├── docker-compose.yml                # MongoDB + backend + frontend
-├── .dockerignore
+├── README.md                         # Project documentation
+├── ATTRIBUTION.md                    # Libraries and team contributions
+├── docker-compose.yml                # Local: MongoDB + backend + frontend
+├── docker-compose.prod.yml           # Production EC2 stack
 ├── .github/workflows/ci.yml          # GitHub Actions CI
 │
 ├── backend/
@@ -22,78 +22,37 @@ Secure-Communications-Collaboration-System-Design-and-Deployment/
 │   ├── pytest.ini
 │   ├── .env.example
 │   ├── tests/
-│   │   ├── conftest.py
-│   │   ├── test_health.py
-│   │   └── test_auth.py
 │   └── app/
 │       ├── main.py                   # FastAPI app, WebSocket, lifespan
-│       ├── config.py                 # pydantic-settings
-│       ├── core/
-│       │   ├── logging.py
-│       │   └── exceptions.py
-│       ├── auth/
-│       │   ├── jwt.py
-│       │   └── dependencies.py
-│       ├── db/
-│       │   ├── client.py
-│       │   └── repositories/
-│       │       ├── users.py
-│       │       ├── otp.py
-│       │       ├── rooms.py
-│       │       └── messages.py
-│       ├── services/
-│       │   ├── auth_service.py
-│       │   ├── room_service.py
-│       │   ├── message_service.py
-│       │   └── email_service.py
-│       ├── routers/
-│       │   ├── health.py
-│       │   ├── auth.py
-│       │   ├── rooms.py
-│       │   └── messages.py
-│       ├── security/
-│       │   ├── rate_limit.py
-│       │   ├── honeypot.py
-│       │   └── middleware.py
-│       ├── websocket/
-│       │   └── manager.py
-│       └── models/
-│           └── schemas.py
+│       ├── config.py
+│       ├── auth/                     # JWT create/verify
+│       ├── db/repositories/          # MongoDB CRUD
+│       ├── services/                 # Business logic
+│       ├── routers/                  # HTTP endpoints
+│       ├── security/                 # Rate limits, honeypot, headers
+│       └── websocket/                # Connection manager
 │
 ├── frontend/
 │   ├── Dockerfile
-│   ├── nginx.conf
-│   ├── .env.example
-│   ├── package.json
-│   ├── vite.config.ts
+│   ├── nginx.prod.conf               # HTTPS config for EC2
 │   └── src/
-│       ├── api/                      # REST client (auth, rooms)
-│       ├── components/
-│       │   ├── chat/ChatRoom.tsx
-│       │   └── layout/ProtectedRoute.tsx
-│       ├── context/AuthContext.tsx
-│       ├── pages/
-│       │   ├── LoginPage.tsx
-│       │   ├── DashboardPage.tsx
-│       │   └── ChatPage.tsx
-│       ├── lib/
-│       │   ├── crypto.ts
-│       │   ├── crypto.test.ts
-│       │   └── websocket.ts
-│       └── types/index.ts
+│       ├── pages/                    # Login, dashboard, chat
+│       ├── components/               # UI components
+│       ├── api/                      # Typed REST client
+│       ├── lib/                      # crypto.ts, websocket.ts
+│       └── types/
 │
 ├── deploy/
-│   └── README.md                     # AWS deployment notes
+│   └── aws/                          # EC2 setup, deploy scripts, env template
 │
 └── docs/
-    ├── STUDYSAFE.md
-    ├── TECH-STACK.md
+    ├── STUDYSAFE.md                  # Project overview
+    ├── TECH-STACK.md                 # Stack and architecture
+    ├── WHY-TECH-CHOICES.md           # Technology rationale
     ├── FOLDER-STRUCTURE.md           # This file
-    ├── WHY-TECH-CHOICES.md
-    ├── SECURITY-PLAN.md
-    ├── AI-CHAT-LOGS.md               # 12 AI chat session links
-    ├── PROJECT-PROPOSALS.md
-    └── meetings/
+    ├── SECURITY-PLAN.md              # Trust model and controls
+    ├── REPO-SECURITY.md              # GitHub access control
+    └── DEPLOYMENT-OPTIONS.md         # Deployment approaches
 ```
 
 ---
@@ -102,13 +61,15 @@ Secure-Communications-Collaboration-System-Design-and-Deployment/
 
 | Layer | Path | Responsibility |
 |-------|------|----------------|
-| Routers | `backend/app/routers/` | HTTP entry, Pydantic validation, auth deps |
+| Routers | `backend/app/routers/` | HTTP entry, Pydantic validation, auth dependencies |
 | Services | `backend/app/services/` | Business logic |
 | Repositories | `backend/app/db/repositories/` | MongoDB CRUD |
 | Auth | `backend/app/auth/` | JWT create/verify, `get_current_user` |
 | Security | `backend/app/security/` | Rate limits, honeypot, headers |
-| Frontend API | `frontend/src/api/` | Typed REST calls + error handling |
+| WebSocket | `backend/app/websocket/` | Connection manager, user-scoped sessions |
+| Frontend API | `frontend/src/api/` | Typed REST calls |
 | Frontend pages | `frontend/src/pages/` | Login, dashboard, chat flows |
+| Crypto | `frontend/src/lib/crypto.ts` | ECDH, AES-GCM, key persistence |
 
 ---
 
@@ -120,6 +81,6 @@ Secure-Communications-Collaboration-System-Design-and-Deployment/
 | `otp_codes` | OTP with TTL auto-expire |
 | `rooms` | name, invite_code, member_ids |
 | `room_keys` | public JWK + fingerprint per user per room |
-| `messages` | ciphertext_payload only |
+| `messages` | `ciphertext_payload` only |
 
 Private keys **never** enter `backend/` or MongoDB.

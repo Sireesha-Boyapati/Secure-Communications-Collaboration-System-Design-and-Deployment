@@ -1,45 +1,40 @@
-# StudySafe — Selected Project
+# StudySafe — Project Overview
 
-**Status:** Selected after lecturer review (Idea 1 from proposals)  
-**Module:** B9IS103 — Secure Communications / Collaboration System  
-**Team:** Mahendra, Sireesha, Oree, Sudheer
+**Team:** Mahendra · Sireesha · Oree · Sudheer
 
----
-
-## One-line summary
-
-**StudySafe** is an encrypted real-time group chat for student teams. Messages are encrypted in the browser before reaching our AWS server or MongoDB.
+End-to-end encrypted realtime group chat for student project teams. Messages are encrypted in the browser before they reach AWS or MongoDB.
 
 ---
 
 ## Problem
 
-Student teams coordinate daily on deadlines, passwords, and assignment splits using WhatsApp or Discord. Those platforms and any relay server can read metadata and, if compromised, message content.
+Student teams coordinate on deadlines, credentials, and work splits using everyday chat tools. Those platforms store messages on third-party servers and cannot guarantee confidentiality if the relay is compromised.
 
 ## Solution
 
-A self-hosted relay that **never sees plaintext**:
+A self-hosted ciphertext relay that never sees plaintext:
 
 1. User verifies identity via **email OTP**
-2. Browser generates **ECDH key pair** (private key never leaves device)
-3. Messages encrypted with **AES-256-GCM** before send
-4. Server + MongoDB store **ciphertext only**
-5. Users verify **key fingerprints** on a second channel (Zoom / phone)
+2. Browser generates an **ECDH P-256** key pair (private key never leaves the device)
+3. Messages are encrypted with **AES-256-GCM** before send
+4. Server and MongoDB store **ciphertext only**
+5. Users verify **SHA-256 key fingerprints** on a second channel (Zoom / phone)
 
 ---
 
-## MVP scope (Phase 1 — demo)
+## Features
 
 | Feature | Status |
 |---------|--------|
-| Real-time WebSocket chat | In progress |
-| Client-side encryption (Web Crypto) | In progress |
-| Room-based group chat | In progress |
-| Public key exchange via server | In progress |
-| Email OTP auth | Planned |
-| MongoDB persistence | Planned |
-| AWS deployment | Planned |
-| Key fingerprint UI | Planned |
+| Email OTP authentication + JWT sessions | Implemented |
+| Invite-only rooms (6-character codes) | Implemented |
+| Client-side E2E encryption (Web Crypto API) | Implemented |
+| Public key registry per room | Implemented |
+| WebSocket realtime chat | Implemented |
+| Presence and typing indicators | Implemented |
+| MongoDB Atlas persistence | Implemented |
+| AWS EC2 production deployment (Docker + nginx) | Implemented |
+| Key fingerprint verification UI | Implemented |
 
 ---
 
@@ -47,34 +42,37 @@ A self-hosted relay that **never sees plaintext**:
 
 - Project teams (3–20 members)
 - Study groups
-- Our B9IS103 team (first real users)
+- Any small team that needs confidential coordination without trusting the server
 
 ---
 
 ## Security principles
 
 1. **No plaintext on server** — golden rule
-2. **Maliciously curious server** — AWS and MongoDB are untrusted for confidentiality
-3. **No security through obscurity** — standard algorithms only
-4. **Identity** — email OTP + optional fingerprint verification
-5. **Defense in depth** — JWT auth, rate limits, honeypot decoys (see SECURITY-PLAN.md)
+2. **Untrusted relay** — AWS and MongoDB are not trusted for message confidentiality
+3. **Standard algorithms only** — Web Crypto API; no custom cryptography
+4. **Defense in depth** — JWT auth, rate limits, honeypot decoys (see [SECURITY-PLAN.md](SECURITY-PLAN.md))
 
 ---
 
-## Demo script (for class)
+## Demo workflow
 
-1. Open app in Browser 1 → join room `B9IS103` as Alice
-2. Open incognito Browser 2 → join as Bob
-3. Alice sends: *"Assignment section 3 done"*
-4. Show server logs / API — ciphertext only
-5. Bob sees decrypted message
-6. Show key fingerprints for verification
+1. Open the app in Browser 1 → sign in as Alice with email A
+2. Open an incognito window → sign in as Bob with **a different email**
+3. Alice creates a room and shares the **invite code** with Bob
+4. Alice sends a message — show padlock icons and ciphertext in MongoDB / DevTools
+5. Bob receives and decrypts the message locally
+6. Compare key fingerprints in **Encryption & keys**
 
 ---
 
-## Document links
+## Related documentation
 
-- [TECH-STACK.md](TECH-STACK.md)
-- [WHY-TECH-CHOICES.md](WHY-TECH-CHOICES.md)
-- [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md)
-- [SECURITY-PLAN.md](SECURITY-PLAN.md)
+| Document | Description |
+|----------|-------------|
+| [TECH-STACK.md](TECH-STACK.md) | Technology stack and architecture |
+| [WHY-TECH-CHOICES.md](WHY-TECH-CHOICES.md) | Rationale for stack decisions |
+| [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md) | Repository layout |
+| [SECURITY-PLAN.md](SECURITY-PLAN.md) | Trust model and security controls |
+| [REPO-SECURITY.md](REPO-SECURITY.md) | GitHub access control and branch protection |
+| [DEPLOYMENT-OPTIONS.md](DEPLOYMENT-OPTIONS.md) | Local Docker vs AWS deployment |

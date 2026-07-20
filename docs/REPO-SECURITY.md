@@ -20,7 +20,7 @@
 | Sudheer | `UPDATE-SUDHEER-GITHUB` | Write |
 
 3. **Remove** any other collaborators (classmates, old accounts, bots).
-4. Set repository visibility to **Private** if allowed by assignment (or Public with strict branch rules).
+4. Set repository visibility according to team preference (Public with strict branch rules, or Private).
 
 > **Rule:** If someone is not in this table, they cannot push — period.
 
@@ -98,7 +98,7 @@ Already implemented in code:
 | Large payload DoS | 64 KB WebSocket cap | `backend/app/main.py` |
 | NoSQL injection | Pydantic validation | `backend/app/models/schemas.py` |
 
-### Production server hardening (AWS — by 19 July)
+### Production server hardening (AWS)
 
 | Control | Action |
 |---------|--------|
@@ -127,7 +127,7 @@ Already implemented in code:
 
 ---
 
-## 5. Team checklist before submission
+## 5. Team checklist
 
 - [ ] Only 4 GitHub accounts have repo access
 - [ ] Branch protection enabled on `main`

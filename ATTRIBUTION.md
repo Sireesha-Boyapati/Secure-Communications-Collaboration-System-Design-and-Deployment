@@ -1,24 +1,14 @@
-# External Resources & AI Attribution — B9IS103 StudySafe
+# External Resources & Attribution — StudySafe
 
-Per assignment brief: external resources and AI use must be documented and attributed.
+Documentation of external libraries, references, and team contributions.
 
 ---
 
 ## AI assistance
 
-AI was used in **12 separate Cursor chat sessions** covering distinct development stages.  
-**Links:** [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) (12 GitHub session logs — Cursor Share unavailable)
+Cursor AI (Claude) was used during development for scaffolding, refactoring, deployment scripts, and documentation. All AI-generated code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
 
-**Team meetings (MoM, transcripts, recordings):** [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
-
-| Date | Tool | Purpose | Files affected |
-|------|------|---------|----------------|
-| 2026-06-18 | Cursor AI | Project proposal ideas (4 options) | `docs/PROJECT-PROPOSALS.md` |
-| 2026-07-01 | Cursor AI | StudySafe selection doc | `docs/STUDYSAFE.md` |
-| 2026-07-02–05 | Cursor AI | Phase 1 demo scaffold | `backend/`, `frontend/`, `docs/` |
-| 2026-07-06–19 | Cursor AI | Production refactor — auth, MongoDB, Docker, CI, README, submission | Full repository |
-
-**Note:** AI-generated scaffold code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
+**Team workspace (MoM, recordings):** [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
 
 ---
 
@@ -31,7 +21,7 @@ AI was used in **12 separate Cursor chat sessions** covering distinct developmen
 | Motor / PyMongo | Apache 2.0 | Async MongoDB driver |
 | python-jose | MIT | JWT tokens |
 | slowapi | MIT | Rate limiting |
-| boto3 | Apache 2.0 | AWS SES email |
+| boto3 | Apache 2.0 | AWS SES email (optional) |
 | React | MIT | Frontend UI |
 | React Router | MIT | Client-side routing |
 | Vite | MIT | Frontend build tool |
@@ -46,7 +36,6 @@ AI was used in **12 separate Cursor chat sessions** covering distinct developmen
 - [FastAPI WebSocket docs](https://fastapi.tiangolo.com/advanced/websockets/)
 - [MongoDB Motor docs](https://motor.readthedocs.io/)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- Module brief B9IS103 — Secure Communications/Collaboration System
 
 ---
 
@@ -54,7 +43,7 @@ AI was used in **12 separate Cursor chat sessions** covering distinct developmen
 
 | Member | Contribution |
 |--------|--------------|
-| Mahendra | Backend architecture, FastAPI services layer, WebSocket relay, MongoDB repositories, Docker, integration tests |
-| Sireesha | Frontend React app, OTP login flow, dashboard, encrypted chat UI, API integration, GitHub repository management |
-| Oree | Email OTP / JWT auth design, AWS deployment architecture, SES integration planning |
-| Sudheer | Threat model, attack scenario tables, penetration testing notes, documentation and compliance docs |
+| Mahendra | Backend architecture, FastAPI services, WebSocket relay, MongoDB repositories, Docker, AWS deployment |
+| Sireesha | Frontend React app, OTP login, dashboard, encrypted chat UI, GitHub repository management |
+| Oree | Email OTP / JWT auth design, AWS deployment architecture |
+| Sudheer | Threat model, security testing, documentation |
