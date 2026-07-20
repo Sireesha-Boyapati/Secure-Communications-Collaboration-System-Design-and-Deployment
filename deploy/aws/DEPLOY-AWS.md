@@ -21,7 +21,25 @@ Browser → EC2:80 (nginx + React) → backend:8000 (FastAPI) → MongoDB Atlas
 
 **Recommended for your project:** Gmail SMTP (already working locally). AWS SES is optional later.
 
-One URL for everything, e.g. `http://3.120.xxx.xxx` — API, WebSocket, and UI on the same host.
+One URL for everything, e.g. `https://3.120.xxx.xxx` — API, WebSocket, and UI on the same host.
+
+---
+
+## ⚠️ Must use HTTPS (not http://IP)
+
+Browsers **disable Web Crypto** on plain HTTP (except localhost). Without HTTPS you will see:
+
+`Cannot read properties of undefined (reading 'generateKey')`
+
+**Fix:** generate a self-signed cert and open **`https://YOUR_EC2_IP`** (accept browser warning once).
+
+```bash
+bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_PUBLIC_IP
+# backend/.env → CORS_ORIGINS=https://YOUR_EC2_PUBLIC_IP
+bash deploy/aws/deploy.sh YOUR_EC2_PUBLIC_IP
+```
+
+Security group: allow **443** (HTTPS) inbound, not just 80.
 
 ---
 

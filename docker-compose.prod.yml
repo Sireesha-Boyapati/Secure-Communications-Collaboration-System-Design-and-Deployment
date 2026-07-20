@@ -1,39 +1,46 @@
-# Production stack for AWS EC2 (free tier).
-# MongoDB Atlas (cloud) — no local MongoDB container.
-#
-# Usage on EC2:
-#   cp deploy/aws/env.production.example backend/.env
-#   # edit backend/.env with secrets
-#   docker compose -f docker-compose.prod.yml up -d --build
-
-services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: studysafe-backend
-    restart: unless-stopped
-    env_file:
-      - ./backend/.env
-    environment:
-      ENVIRONMENT: production
-    expose:
-      - "8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: studysafe-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      backend:
-        condition: service_healthy
+# Production stack for AWS EC2 (free tier).
+# MongoDB Atlas (cloud) — no local MongoDB container.
+#
+# Before first start (Web Crypto needs HTTPS):
+#   bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_PUBLIC_IP
+#   # CORS_ORIGINS=https://YOUR_EC2_PUBLIC_IP in backend/.env
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: studysafe-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      ENVIRONMENT: production
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NGINX_CONF: nginx.prod.conf
+    container_name: studysafe-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/aws/certs:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy

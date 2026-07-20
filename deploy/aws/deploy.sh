@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start StudySafe on EC2 after backend/.env is configured.
-# Run from repo root: bash deploy/aws/deploy.sh
+# Run from repo root: bash deploy/aws/deploy.sh [EC2_PUBLIC_IP]
 
 set -euo pipefail
 
@@ -12,18 +12,28 @@ if [[ ! -f backend/.env ]]; then
   exit 1
 fi
 
-echo "==> Building and starting StudySafe (production)..."
+PUBLIC="${1:-$(curl -sf http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)}"
+
+if [[ ! -f deploy/aws/certs/fullchain.pem ]]; then
+  if [[ -z "$PUBLIC" ]]; then
+    echo "ERROR: Run first: bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_IP"
+    exit 1
+  fi
+  bash deploy/aws/generate-selfsigned-cert.sh "$PUBLIC"
+fi
+
+echo "==> Building and starting StudySafe (production + HTTPS)..."
 docker compose -f docker-compose.prod.yml up -d --build
 
 echo "==> Waiting for health..."
 for i in {1..30}; do
-  if curl -sf http://127.0.0.1/health >/dev/null 2>&1; then
+  if curl -ksf https://127.0.0.1/health >/dev/null 2>&1; then
     echo "==> OK"
-    curl -s http://127.0.0.1/health
+    curl -ks https://127.0.0.1/health
     echo
-    PUBLIC=$(curl -sf http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)
     if [[ -n "$PUBLIC" ]]; then
-      echo "==> Open in browser: http://${PUBLIC}"
+      echo "==> Open in browser: https://${PUBLIC}"
+      echo "    (Accept the certificate warning — required for encrypted chat)"
     fi
     docker compose -f docker-compose.prod.yml ps
     exit 0
