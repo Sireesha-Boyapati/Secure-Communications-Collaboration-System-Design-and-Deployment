@@ -44,6 +44,12 @@ async def lifespan(app: FastAPI):
     await otp_repo.ensure_indexes()
     await room_repo.ensure_indexes()
     await message_repo.ensure_indexes()
+    if settings.smtp_configured:
+        logger.info("Email delivery: SMTP (%s)", settings.smtp_host)
+    elif settings.ses_configured:
+        logger.info("Email delivery: AWS SES (%s)", settings.aws_region)
+    else:
+        logger.info("Email delivery: console only [DEV OTP] (env=%s)", settings.environment)
     logger.info("StudySafe API started (env=%s)", settings.environment)
     yield
     await close_db()
@@ -121,7 +127,8 @@ async def websocket_endpoint(
         return
 
     username = user["display_name"]
-    await manager.connect(room_id, username, websocket)
+    user_id = user["id"]
+    await manager.connect(room_id, user_id, username, websocket)
 
     try:
         while True:
@@ -157,7 +164,7 @@ async def websocket_endpoint(
                     "payload": raw,
                     "relay_timestamp": datetime.now(timezone.utc).isoformat(),
                 },
-                exclude=username,
+                exclude_user_id=user_id,
             )
     except WebSocketDisconnect:
-        await manager.disconnect_and_notify(room_id, username)
+        await manager.disconnect_and_notify(room_id, user_id, username)

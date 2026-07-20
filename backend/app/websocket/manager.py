@@ -11,13 +11,20 @@ from app.websocket import events
 
 
 @dataclass
-class ConnectionManager:
-    """Track active WebSocket connections per room."""
+class _Connection:
+    websocket: WebSocket
+    display_name: str
 
-    rooms: dict[str, dict[str, WebSocket]] = field(default_factory=dict)
+
+@dataclass
+class ConnectionManager:
+    """Track active WebSocket connections per room (one socket per user_id)."""
+
+    rooms: dict[str, dict[str, _Connection]] = field(default_factory=dict)
 
     def online_users(self, room_id: str) -> list[str]:
-        return sorted(self.rooms.get(room_id, {}).keys())
+        room = self.rooms.get(room_id, {})
+        return sorted(conn.display_name for conn in room.values())
 
     async def _broadcast_presence(self, room_id: str) -> None:
         await self.broadcast(
@@ -25,29 +32,44 @@ class ConnectionManager:
             {"type": events.PRESENCE, "online": self.online_users(room_id)},
         )
 
-    async def connect(self, room_id: str, username: str, websocket: WebSocket) -> None:
+    async def connect(
+        self,
+        room_id: str,
+        user_id: str,
+        display_name: str,
+        websocket: WebSocket,
+    ) -> None:
         await websocket.accept()
-        self.rooms.setdefault(room_id, {})[username] = websocket
+        room = self.rooms.setdefault(room_id, {})
+
+        existing = room.get(user_id)
+        if existing is not None:
+            try:
+                await existing.websocket.close(code=4000, reason="Replaced by new session")
+            except Exception:
+                pass
+
+        room[user_id] = _Connection(websocket=websocket, display_name=display_name)
         await self._broadcast_presence(room_id)
         await self.broadcast(
             room_id,
             {
                 "type": events.SYSTEM,
                 "event": "join",
-                "username": username,
-                "message": f"{username} joined the room",
+                "username": display_name,
+                "message": f"{display_name} joined the room",
             },
-            exclude=username,
+            exclude_user_id=user_id,
         )
 
-    def disconnect(self, room_id: str, username: str) -> None:
+    def disconnect(self, room_id: str, user_id: str) -> None:
         room = self.rooms.get(room_id, {})
-        room.pop(username, None)
+        room.pop(user_id, None)
         if not room:
             self.rooms.pop(room_id, None)
 
-    async def disconnect_and_notify(self, room_id: str, username: str) -> None:
-        self.disconnect(room_id, username)
+    async def disconnect_and_notify(self, room_id: str, user_id: str, display_name: str) -> None:
+        self.disconnect(room_id, user_id)
         if room_id in self.rooms:
             await self._broadcast_presence(room_id)
         await self.broadcast(
@@ -55,24 +77,32 @@ class ConnectionManager:
             {
                 "type": events.SYSTEM,
                 "event": "leave",
-                "username": username,
-                "message": f"{username} left the room",
+                "username": display_name,
+                "message": f"{display_name} left the room",
             },
         )
 
-    async def broadcast(self, room_id: str, payload: dict, exclude: str | None = None) -> None:
+    async def broadcast(
+        self,
+        room_id: str,
+        payload: dict,
+        exclude: str | None = None,
+        exclude_user_id: str | None = None,
+    ) -> None:
         room = self.rooms.get(room_id, {})
         data = json.dumps(payload)
         dead: list[str] = []
-        for user, ws in room.items():
-            if exclude and user == exclude:
+        for uid, conn in room.items():
+            if exclude_user_id and uid == exclude_user_id:
+                continue
+            if exclude and conn.display_name == exclude:
                 continue
             try:
-                await ws.send_text(data)
+                await conn.websocket.send_text(data)
             except Exception:
-                dead.append(user)
-        for user in dead:
-            room.pop(user, None)
+                dead.append(uid)
+        for uid in dead:
+            room.pop(uid, None)
 
     async def send_personal(self, websocket: WebSocket, payload: dict) -> None:
         await websocket.send_text(json.dumps(payload))
