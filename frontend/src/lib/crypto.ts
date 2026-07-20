@@ -19,7 +19,16 @@ function base64ToBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+function assertWebCryptoAvailable(): void {
+  if (typeof globalThis.crypto?.subtle?.generateKey !== "function") {
+    throw new Error(
+      "Encrypted chat requires HTTPS. Open https://YOUR-EC2-IP (not http) and accept the certificate warning.",
+    );
+  }
+}
+
 export async function generateKeyPair(): Promise<KeyPairBundle> {
+  assertWebCryptoAvailable();
   const keyPair = await crypto.subtle.generateKey(ECDH_PARAMS, true, ["deriveKey", "deriveBits"]);
   return bundleFromKeyPair(keyPair);
 }
