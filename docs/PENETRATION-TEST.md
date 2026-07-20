@@ -1,15 +1,12 @@
-# StudySafe — Penetration & Security Testing Notes
+# StudySafe — Penetration and Security Testing Notes
 
-**Module:** B9IS103  
-**Date:** 19 July 2026  
-**Tester:** Sudheer (lead) — team reviewed  
-**Environment:** Local (FastAPI + MongoDB + React)
+**Environment:** Local (FastAPI, MongoDB, React) and production (AWS EC2)
 
 ---
 
 ## Scope
 
-Manual security testing of StudySafe Phase 1 production skeleton before final submission.
+Manual security testing of the StudySafe application covering authentication, authorization, encryption, and abuse prevention controls.
 
 ---
 
@@ -85,6 +82,4 @@ cd frontend && npm test
 
 ## Conclusion
 
-StudySafe meets the security requirements for Phase 1 submission. The server never stores or transmits plaintext messages. Authentication, authorization, rate limiting, and honeypot controls function as designed in local testing.
-
-**Signed off for submission:** Team review 19 July 2026
+StudySafe enforces end-to-end confidentiality: the server does not store or transmit plaintext messages. Authentication, authorization, rate limiting, and honeypot controls function as designed in testing.

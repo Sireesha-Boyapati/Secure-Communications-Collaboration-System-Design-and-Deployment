@@ -1,7 +1,6 @@
-﻿# StudySafe â€” Realtime WebSocket Architecture
+﻿# StudySafe — Realtime WebSocket Architecture
 
-**Module:** B9IS103  
-**Purpose:** Production-grade realtime encrypted chat
+Production-grade realtime encrypted chat over authenticated WebSockets.
 
 ---
 

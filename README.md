@@ -1,13 +1,4 @@
-<div align="center">
-
 # StudySafe
-
-**End-to-end encrypted realtime messaging for secure team collaboration**
-
-Messages are encrypted in the browser before they leave the device.  
-The server relays ciphertext only — it never sees plaintext.
-
-<br/>
 
 [![CI](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/actions/workflows/ci.yml/badge.svg)](https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment/actions)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
@@ -16,25 +7,25 @@ The server relays ciphertext only — it never sees plaintext.
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazonaws&logoColor=white)
 
-<br/>
+Secure, end-to-end encrypted realtime messaging platform for confidential team collaboration.
 
-[**Live Demo**](https://16.16.138.41) · [**API Docs**](https://16.16.138.41/docs) · [**SharePoint**](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
+Messages are encrypted in the browser before transmission. The server stores and relays ciphertext only; private keys never leave the client device.
 
-*Mahendra · Sireesha · Oree · Sudheer*
+**Live demo:** https://16.16.138.41  
+**API documentation:** https://16.16.138.41/docs  
+**Team workspace:** [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
 
-</div>
+Development team: Mahendra, Sireesha, Oree, Sudheer
 
-<br/>
-
-> Production runs on HTTPS with a self-signed certificate. Accept the browser warning once — the Web Crypto API requires a secure context.
+> Production uses HTTPS with a self-signed certificate. Accept the browser security warning once to enable the Web Crypto API.
 
 ---
 
 ## Overview
 
-StudySafe is a full-stack secure messaging platform built for teams that need real-time chat without trusting the server with message content.
+StudySafe is a full-stack secure messaging application designed for teams that require real-time communication without delegating confidentiality to the server.
 
-Mainstream tools store messages in plaintext on third-party infrastructure. StudySafe takes a different approach: **cryptography enforces confidentiality**, not policy. Users sign in with email OTP, join invite-only rooms, and chat in real time — with the same live feel as modern messengers, but with end-to-end encryption built in.
+Conventional messaging platforms persist messages on third-party infrastructure, often in plaintext. StudySafe applies client-side cryptography so that confidentiality is enforced by design. Users authenticate via email OTP, join invite-only rooms, and exchange messages in real time with end-to-end encryption comparable to consumer messaging applications.
 
 **Design principle:** plaintext must never reach the backend or database.
 
@@ -42,25 +33,29 @@ Mainstream tools store messages in plaintext on third-party infrastructure. Stud
 
 ## Features
 
-**Identity & access**
-- Passwordless email OTP login with JWT sessions (HS256, 60-minute TTL)
-- Invite-only rooms with 6-character codes
-- JWT enforced on every REST call and WebSocket connection
+### Identity and access control
 
-**Encrypted messaging**
-- ECDH P-256 key agreement + AES-256-GCM via the browser Web Crypto API
-- Public keys registered per room; private keys stay in the browser (`sessionStorage`)
+- Passwordless email OTP authentication with JWT sessions (HS256, 60-minute TTL)
+- Invite-only rooms secured with 6-character access codes
+- JWT validation on all protected REST endpoints and WebSocket connections
+
+### Encrypted messaging
+
+- ECDH P-256 key agreement and AES-256-GCM encryption via the Web Crypto API
+- Per-room public key registration; private keys retained in browser session storage
 - SHA-256 key fingerprints for out-of-band verification
 
-**Realtime collaboration**
-- Authenticated WebSocket relay with live presence and typing indicators
-- Auto-reconnect with connection status in the UI
-- Message history stored as ciphertext and decrypted only when users rejoin
+### Realtime collaboration
 
-**Production ready**
+- JWT-authenticated WebSocket relay with presence and typing indicators
+- Automatic reconnection with live connection status in the user interface
+- Encrypted message history persisted in MongoDB and decrypted on the client
+
+### Production deployment
+
 - Docker Compose on AWS EC2 with nginx TLS termination
-- Gmail SMTP for OTP delivery in production
-- GitHub Actions CI — pytest, vitest, and build on every push
+- Gmail SMTP for OTP delivery in production environments
+- GitHub Actions continuous integration (pytest, vitest, production build)
 
 ---
 
@@ -83,11 +78,11 @@ flowchart LR
     C <-->|TLS| D
 ```
 
-**Client tier** — React 18 handles OTP login, key generation, encrypt/decrypt, and the WebSocket client. Private keys never leave the browser.
+The client tier (React 18) handles authentication, key generation, encryption, decryption, and WebSocket communication. Private keys remain exclusively in the browser.
 
-**Application tier** — nginx terminates TLS and serves the production build. FastAPI validates JWTs, registers public keys, and relays ciphertext without decryption capability.
+The application tier (nginx and FastAPI) terminates TLS, validates JWTs, maintains the public key registry, and relays ciphertext without decryption capability.
 
-**Data tier** — MongoDB Atlas stores users, rooms, public keys, and encrypted messages. Collections hold metadata and ciphertext only.
+The data tier (MongoDB Atlas) stores users, rooms, public keys, and encrypted message payloads. No plaintext message content is persisted.
 
 ### Message flow
 
@@ -98,30 +93,30 @@ sequenceDiagram
     participant D as MongoDB
     participant P as Peer
 
-    U->>S: OTP login → JWT
-    U->>U: Generate ECDH keys locally
+    U->>S: OTP authentication
+    U->>U: Generate ECDH key pair
     U->>S: Register public key
-    S->>D: Store in room_keys
-    U->>U: Encrypt message (AES-256-GCM)
-    U->>S: Send ciphertext (WebSocket)
-    S->>D: Persist ciphertext_payload
-    S->>P: Relay frame
+    S->>D: Persist room_keys
+    U->>U: Encrypt message locally
+    U->>S: Transmit ciphertext
+    S->>D: Store ciphertext_payload
+    S->>P: Relay to peer
     P->>P: Decrypt locally
 ```
 
-**Cryptographic steps**
+### Cryptographic workflow
 
-1. User verifies email via OTP → server issues JWT  
-2. User creates or joins a room with an invite code  
-3. Browser generates ECDH P-256 keys; public key is registered server-side  
-4. Sender derives AES-256-GCM keys per recipient and encrypts locally  
-5. Server stores and relays ciphertext; peers decrypt with their private keys  
+1. User verifies identity via email OTP; server issues a JWT.
+2. User creates or joins a room using an invite code.
+3. Browser generates an ECDH P-256 key pair; the public key is registered server-side.
+4. Sender derives AES-256-GCM keys per recipient and encrypts the message locally.
+5. Server stores and relays ciphertext; recipients decrypt using their private keys.
 
-For MITM protection, users compare SHA-256 key fingerprints on a second channel (Zoom, phone, etc.).
+Users may verify SHA-256 key fingerprints through an independent channel to detect man-in-the-middle attacks.
 
 ---
 
-## Tech stack
+## Technology stack
 
 ### Frontend
 
@@ -130,7 +125,7 @@ For MITM protection, users compare SHA-256 key fingerprints on a second channel 
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 ![Web Crypto](https://img.shields.io/badge/Web_Crypto-API-4285F4?logo=googlechrome&logoColor=white)
 
-Chat UI, client-side encryption, and WebSocket client — all in the browser.
+React-based chat interface with client-side encryption and WebSocket connectivity.
 
 ### Backend
 
@@ -139,17 +134,17 @@ Chat UI, client-side encryption, and WebSocket client — all in the browser.
 ![Motor](https://img.shields.io/badge/Motor-async_MongoDB-47A248?logo=mongodb&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)
 
-REST + WebSocket API, JWT auth, rate limiting, and ciphertext relay.
+FastAPI REST and WebSocket services with JWT authentication, rate limiting, and ciphertext relay.
 
-### Auth & realtime
+### Authentication and realtime
 
 ![JWT](https://img.shields.io/badge/JWT-HS256-000000?logo=jsonwebtokens&logoColor=white)
 ![OTP](https://img.shields.io/badge/Email_OTP-Gmail_SMTP-EA4335?logo=gmail&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-JWT_authenticated-010101?logo=socketdotio&logoColor=white)
 
-Passwordless login, short-lived sessions, and live encrypted messaging.
+Passwordless authentication, short-lived sessions, and encrypted realtime messaging.
 
-### Data & infrastructure
+### Data and infrastructure
 
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_M0-47A248?logo=mongodb&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-EC2_t2.micro-FF9900?logo=amazonaws&logoColor=white)
@@ -157,67 +152,68 @@ Passwordless login, short-lived sessions, and live encrypted messaging.
 ![nginx](https://img.shields.io/badge/nginx-TLS-009639?logo=nginx&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
 
-Atlas stores ciphertext only. EC2 runs the production stack. CI runs on every push.
+MongoDB Atlas for encrypted storage; AWS EC2 for production hosting; GitHub Actions for CI.
 
-Full details → [docs/TECH-STACK.md](docs/TECH-STACK.md)
+Further detail: [docs/TECH-STACK.md](docs/TECH-STACK.md)
 
 ---
 
 ## Security
 
-StudySafe assumes the relay and database may be compromised. The goal is **damage limitation** — an attacker who breaks into EC2 or MongoDB still cannot read messages.
+StudySafe is designed under the assumption that the application server and database may be compromised. The security objective is damage limitation: a breached relay must not expose readable message content.
 
-**Controls in place**
+### Implemented controls
 
-- TLS on all traffic (HTTPS / WSS)
-- Time-limited OTP + short-lived JWT tokens
-- Room membership checks on REST and WebSocket
-- End-to-end AES-256-GCM — server has no private keys
-- Pydantic input validation on all API bodies
-- Rate limiting (60 req/min) and 64 KB WebSocket payload cap
-- Security headers, honeypot `/api/admin/*` decoy endpoints
-- Secrets in `.env` — never committed to source control
+- TLS encryption on all HTTP and WebSocket traffic
+- Time-limited OTP codes and short-lived JWT tokens
+- Room membership validation on REST and WebSocket requests
+- End-to-end AES-256-GCM encryption with client-only private keys
+- Pydantic schema validation on all API request bodies
+- Rate limiting (60 requests per minute) and 64 KB WebSocket payload limits
+- HTTP security headers and honeypot decoy endpoints at `/api/admin/*`
+- Secrets managed via environment variables; excluded from version control
 
-**If the server is breached, attackers still cannot**
+### Residual protection after server compromise
 
-- Read message plaintext (never stored)
-- Derive private keys (never sent to the server)
-- Decrypt history without each user's browser session keys
-- Join a room without a valid member JWT
+An attacker with full access to EC2 and MongoDB cannot:
 
-**Threat coverage** — server/DB exfiltration, MITM key substitution, stolen JWT, OTP brute force, WebSocket hijacking, API flooding, injection, and invite code guessing are all mitigated through the controls above.
+- Read message plaintext (not stored server-side)
+- Derive private keys (never transmitted to the server)
+- Decrypt historical messages without each user's browser session keys
+- Access a room without a valid JWT for an authorized member
 
-Deep dive → [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md)
+Further detail: [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md)
 
 ---
 
-## Quick start
+## Local development
 
-**Prerequisites:** Python 3.12+, Node.js 20+, MongoDB (local or Atlas)
+**Prerequisites:** Python 3.12+, Node.js 20+, MongoDB (local instance or Atlas URI)
 
 ```bash
 # Backend
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env          # set MONGODB_URI, JWT_SECRET
+cp .env.example .env
 uvicorn app.main:app --reload --port 8000
 
-# Frontend (new terminal)
+# Frontend (separate terminal)
 cd frontend && npm install && npm run dev
 ```
 
-Open **http://localhost:5173** · API docs at **http://localhost:8000/docs**
+- Application: http://localhost:5173
+- API documentation: http://localhost:8000/docs
 
-Without SMTP, OTP codes print in the backend terminal: `[DEV OTP] email=... code=...`
+Without SMTP configuration, OTP codes are logged to the backend console: `[DEV OTP] email=... code=...`
 
-**Two-user test:** use two browsers with **different email addresses**. Join the same room via the **invite code**, not the room display name.
+For multi-user testing, open two browsers with different email accounts and join the same room using the invite code.
 
 ---
 
-## Deploy to AWS
+## AWS production deployment
 
-Single EC2 instance running Docker — frontend, backend, and nginx together. Database is MongoDB Atlas (not on EC2).
+The production environment runs on a single EC2 instance (Docker Compose: nginx, FastAPI, React). MongoDB Atlas is hosted separately.
 
 ```bash
 git clone https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment.git
@@ -225,17 +221,15 @@ cd Secure-Communications-Collaboration-System-Design-and-Deployment
 bash deploy/aws/setup-ec2.sh
 
 cp deploy/aws/env.production.example backend/.env
-# Edit: MONGODB_URI, JWT_SECRET, SMTP_*, CORS_ORIGINS=https://YOUR_EC2_IP
-
 bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_IP
 bash deploy/aws/deploy.sh YOUR_EC2_IP
 ```
 
-Open **https://YOUR_EC2_IP** · Security group: ports **22** (SSH) and **443** (HTTPS)
+Configure `MONGODB_URI`, `JWT_SECRET`, `SMTP_*`, and `CORS_ORIGINS=https://YOUR_EC2_IP` in `backend/.env`.
 
-Key env vars: `ENVIRONMENT=production`, `CORS_ORIGINS=https://YOUR_EC2_IP`, `JWT_EXPIRE_MINUTES=60`, `SMTP_HOST=smtp.gmail.com`
+Open https://YOUR_EC2_IP. Security group: ports 22 (SSH) and 443 (HTTPS).
 
-Full guide → [deploy/aws/DEPLOY-AWS.md](deploy/aws/DEPLOY-AWS.md)
+Deployment guide: [deploy/aws/DEPLOY-AWS.md](deploy/aws/DEPLOY-AWS.md)
 
 ---
 
@@ -246,15 +240,15 @@ cd backend && pytest -v
 cd frontend && npm test && npm run build
 ```
 
-CI runs on every push to `main`.
+Continuous integration runs on every push to the `main` branch.
 
-**Verify encryption works**
+### Encryption verification
 
-1. Padlock icons on messages; check **Encryption & keys** for fingerprints  
-2. Two browsers, two different emails — live encrypted chat  
-3. MongoDB `messages` collection — `ciphertext_payload` is unreadable JSON  
-4. DevTools → WebSocket frames show encrypted payloads, not plain text  
-5. `/docs` — no decrypt endpoints exist on the server  
+1. Confirm padlock indicators on messages and review key fingerprints in the Encryption panel.
+2. Conduct a live chat session between two distinct user accounts in separate browsers.
+3. Inspect the MongoDB `messages` collection; `ciphertext_payload` must contain unreadable JSON.
+4. Review WebSocket frames in browser DevTools; payloads must not contain plaintext.
+5. Confirm the OpenAPI documentation exposes no message decryption endpoints.
 
 ---
 
@@ -270,10 +264,6 @@ CI runs on every push to `main`.
 
 ---
 
-<div align="center">
+## License
 
-**StudySafe** — secure communications platform
-
-Not licensed for commercial use.
-
-</div>
+StudySafe secure communications platform. Not licensed for commercial use.
