@@ -1,122 +1,57 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { createRoom, joinRoom, listMyRooms } from "../api/rooms";
-import { ApiError } from "../api/client";
+import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getAvatarColor, getInitials } from "../lib/avatars";
 import type { Room } from "../types";
 
+interface OutletContext {
+  rooms: Room[];
+}
+
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [roomName, setRoomName] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadRooms = async () => {
-    try {
-      const data = await listMyRooms();
-      setRooms(data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load rooms");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadRooms();
-  }, []);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    try {
-      const room = await createRoom(roomName);
-      setRoomName("");
-      await loadRooms();
-      setRooms((prev) => [room, ...prev]);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to create room");
-    }
-  };
-
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await joinRoom(inviteCode);
-      setInviteCode("");
-      await loadRooms();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Invalid invite code");
-    }
-  };
+  const { user } = useAuth();
+  const { rooms } = useOutletContext<OutletContext>();
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div>
-          <h1>StudySafe</h1>
-          <p className="muted">Signed in as {user?.display_name} ({user?.email})</p>
+    <div className="home-view">
+      <div className="home-view-inner">
+        <div className="home-pulse" aria-hidden>
+          <span className="pulse-ring" />
+          <span className="pulse-dot" />
         </div>
-        <button type="button" className="btn-secondary" onClick={logout}>
-          Sign out
-        </button>
-      </header>
+        <h1>Realtime encrypted chat</h1>
+        <p className="home-lead">
+          Hey {user?.display_name} — pick a room from the left or start a new conversation.
+          Messages sync live over WebSocket.
+        </p>
 
-      <div className="dashboard-grid">
-        <section className="panel">
-          <h2>Create room</h2>
-          <form onSubmit={(e) => void handleCreate(e)}>
-            <input
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              placeholder="B9IS103 Team"
-              required
-            />
-            <button type="submit">Create encrypted room</button>
-          </form>
-        </section>
-
-        <section className="panel">
-          <h2>Join room</h2>
-          <form onSubmit={(e) => void handleJoin(e)}>
-            <input
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="Invite code"
-              required
-            />
-            <button type="submit">Join with invite</button>
-          </form>
-        </section>
-      </div>
-
-      {error && <div className="error-box">{error}</div>}
-
-      <section className="panel rooms-list">
-        <h2>Your rooms</h2>
-        {loading ? (
-          <p className="muted">Loading…</p>
-        ) : rooms.length === 0 ? (
-          <p className="muted">No rooms yet — create one or join with an invite code.</p>
+        {rooms.length === 0 ? (
+          <div className="home-empty">
+            <p>No conversations yet</p>
+            <span>Use <strong>+ New room</strong> or <strong>Join with code</strong> in the sidebar.</span>
+          </div>
         ) : (
-          <ul>
+          <div className="conversation-preview-list">
+            <p className="preview-label">Recent conversations</p>
             {rooms.map((room) => (
-              <li key={room.id}>
-                <div>
-                  <strong>{room.name}</strong>
-                  <span className="muted"> · {room.member_count} members · invite: {room.invite_code}</span>
-                </div>
-                <Link to={`/room/${room.id}`} className="btn-primary">
-                  Open chat
-                </Link>
-              </li>
+              <Link key={room.id} to={`/room/${room.id}`} className="conversation-preview">
+                <span
+                  className="avatar"
+                  style={{ background: getAvatarColor(room.name) }}
+                >
+                  {getInitials(room.name)}
+                </span>
+                <span className="preview-body">
+                  <span className="preview-title">{room.name}</span>
+                  <span className="preview-sub">
+                    {room.member_count} online-ready · tap to open live chat
+                  </span>
+                </span>
+                <span className="preview-live">Live</span>
+              </Link>
             ))}
-          </ul>
+          </div>
         )}
-      </section>
+      </div>
     </div>
   );
 }

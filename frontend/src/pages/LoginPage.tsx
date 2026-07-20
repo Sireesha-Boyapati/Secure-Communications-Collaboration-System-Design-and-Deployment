@@ -44,53 +44,74 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>StudySafe</h1>
-        <p className="subtitle">Encrypted team chat — sign in with email OTP</p>
+    <div className="auth-page realtime-bg">
+      <div className="auth-glow auth-glow-a" aria-hidden />
+      <div className="auth-glow auth-glow-b" aria-hidden />
+      <div className="auth-glow auth-glow-c" aria-hidden />
+
+      <div className="auth-card glass">
+        <div className="auth-brand-row">
+          <div className="auth-logo-sm" aria-hidden>
+            <span className="live-dot" />
+          </div>
+          <div>
+            <h1>StudySafe</h1>
+            <p className="auth-live-tag">Live encrypted messaging</p>
+          </div>
+        </div>
+
+        <h2>{step === "email" ? "Sign in to chat" : "Enter verification code"}</h2>
+        <p className="auth-subtitle">
+          {step === "email"
+            ? "We’ll email you a one-time code — no password needed."
+            : `Code sent to ${email}. Check inbox and spam.`}
+        </p>
 
         {step === "email" ? (
           <form onSubmit={(e) => void handleRequestOtp(e)}>
             <label>
-              College email
+              Email
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@college.ie"
+                autoComplete="email"
                 required
               />
             </label>
-            <button type="submit" disabled={loading}>
-              {loading ? "Sending…" : "Send verification code"}
+            <button type="submit" className="btn-cta" disabled={loading}>
+              {loading ? "Sending…" : "Send code & continue"}
             </button>
           </form>
         ) : (
           <form onSubmit={(e) => void handleVerifyOtp(e)}>
-            <p className="hint">Code sent to <strong>{email}</strong> (check backend logs in dev)</p>
             <label>
               Display name
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Alice"
+                placeholder="Name in chat"
+                autoComplete="name"
                 required
               />
             </label>
             <label>
-              Verification code
+              6-digit code
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="6-digit code"
+                placeholder="••••••"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 required
               />
             </label>
-            <button type="submit" disabled={loading}>
-              {loading ? "Verifying…" : "Verify & sign in"}
+            <button type="submit" className="btn-cta" disabled={loading}>
+              {loading ? "Joining…" : "Join realtime chat"}
             </button>
-            <button type="button" className="btn-link" onClick={() => setStep("email")}>
-              Use different email
+            <button type="button" className="btn-text" onClick={() => setStep("email")}>
+              Different email
             </button>
           </form>
         )}
