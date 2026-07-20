@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
 
+    # Optional SMTP fallback (e.g. Gmail App Password) when SES verification is blocked
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+
     rate_limit_per_minute: int = 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -40,6 +46,14 @@ class Settings(BaseSettings):
     @property
     def ses_configured(self) -> bool:
         return bool(self.aws_access_key_id and self.aws_secret_access_key)
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host and self.smtp_user and self.smtp_password)
+
+    @property
+    def email_delivery_configured(self) -> bool:
+        return self.ses_configured or self.smtp_configured
 
 
 settings = Settings()
