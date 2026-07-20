@@ -59,60 +59,82 @@ Conventional messaging platforms persist messages on third-party infrastructure,
 
 ---
 
-## Architecture
+## System architecture
+
+### Deployment topology
 
 ```mermaid
-flowchart LR
-    subgraph Client
-        A[React SPA<br/>Web Crypto API]
+flowchart TB
+    subgraph Client["Client tier"]
+        Browser["Browser<br/>React 18 · TypeScript · Web Crypto API"]
     end
-    subgraph EC2
-        B[nginx]
-        C[FastAPI]
-        B --> C
+
+    subgraph Compute["Application tier — AWS EC2"]
+        Nginx["nginx<br/>TLS termination · static assets"]
+        API["FastAPI<br/>JWT auth · ciphertext relay · rate limits"]
+        Nginx --> API
     end
-    subgraph Cloud
-        D[(MongoDB Atlas)]
+
+    subgraph Data["Data tier"]
+        Atlas["MongoDB Atlas M0<br/>users · otp_codes · rooms · room_keys · messages"]
     end
-    A <-->|HTTPS / WSS| B
-    C <-->|TLS| D
+
+    Browser -->|"HTTPS / WSS"| Nginx
+    API -->|"TLS"| Atlas
 ```
 
-The client tier (React 18) handles authentication, key generation, encryption, decryption, and WebSocket communication. Private keys remain exclusively in the browser.
+**Golden rule:** plaintext must never reach the backend or database.
 
-The application tier (nginx and FastAPI) terminates TLS, validates JWTs, maintains the public key registry, and relays ciphertext without decryption capability.
+### Component responsibilities
 
-The data tier (MongoDB Atlas) stores users, rooms, public keys, and encrypted message payloads. No plaintext message content is persisted.
+**Client tier**
+- React SPA — OTP login, key generation, encrypt/decrypt, WebSocket client
+- Web Crypto API — ECDH P-256 key pairs and AES-256-GCM message encryption
+- sessionStorage — private keys persisted per room for the browser session
 
-### Message flow
+**Application tier**
+- nginx — HTTPS termination, reverse proxy, React production build
+- FastAPI — JWT validation, public-key registry, ciphertext store and relay (no decryption)
+
+**Data tier**
+- MongoDB Atlas — users, rooms, public keys, and encrypted messages (ciphertext only)
+
+### End-to-end message flow
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant S as FastAPI
-    participant D as MongoDB
-    participant P as Peer
+    actor User as User (Browser)
+    participant API as FastAPI Relay
+    participant DB as MongoDB Atlas
+    actor Peer as Peer (Browser)
 
-    U->>S: OTP authentication
-    U->>U: Generate ECDH key pair
-    U->>S: Register public key
-    S->>D: Persist room_keys
-    U->>U: Encrypt message locally
-    U->>S: Transmit ciphertext
-    S->>D: Store ciphertext_payload
-    S->>P: Relay to peer
-    P->>P: Decrypt locally
+    User->>API: Request OTP (email)
+    API->>User: Deliver OTP (SMTP / dev console)
+    User->>API: Verify OTP
+    API->>User: Issue JWT
+
+    User->>User: Generate ECDH P-256 key pair
+    User->>API: Register public key (JWT + room membership)
+    API->>DB: Store public key in room_keys
+
+    User->>User: Derive AES-256-GCM key per recipient
+    User->>User: Encrypt message locally
+    User->>API: Send ciphertext via WebSocket (JWT)
+    API->>DB: Persist ciphertext_payload
+    API->>Peer: Relay ciphertext frame
+    Peer->>Peer: Decrypt locally with shared secret
 ```
 
 ### Cryptographic workflow
 
-1. User verifies identity via email OTP; server issues a JWT.
-2. User creates or joins a room using an invite code.
-3. Browser generates an ECDH P-256 key pair; the public key is registered server-side.
-4. Sender derives AES-256-GCM keys per recipient and encrypts the message locally.
-5. Server stores and relays ciphertext; recipients decrypt using their private keys.
+1. **Authentication** — User submits email; server generates a time-limited OTP (6 digits, 10-minute expiry). On verification, server issues a JWT (HS256, 60-minute expiry).
+2. **Room access** — User creates or joins a room via a random 6-character invite code. Membership is validated on every API and WebSocket request.
+3. **Key establishment** — Browser generates an ECDH P-256 key pair per room session. Public key is registered with the server; private key remains in sessionStorage.
+4. **Shared secret derivation** — For each recipient, sender performs ECDH with the recipient's registered public key and derives an AES-256-GCM key.
+5. **Message encryption** — Plaintext is encrypted locally. The payload includes per-recipient ciphertext and metadata (sender, timestamp).
+6. **Relay and storage** — Server stores and forwards ciphertext without decryption capability. Peers decrypt on receipt using their private keys.
 
-Users may verify SHA-256 key fingerprints through an independent channel to detect man-in-the-middle attacks.
+**Out-of-band verification:** users compare SHA-256 key fingerprints via a secondary channel (e.g. Zoom or phone) to detect man-in-the-middle key substitution.
 
 ---
 
