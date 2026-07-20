@@ -123,14 +123,41 @@ For MITM protection, users compare SHA-256 key fingerprints on a second channel 
 
 ## Tech stack
 
-**Frontend** — React 18, TypeScript, Vite, Web Crypto API  
-**Backend** — Python 3.12, FastAPI, Motor, Pydantic, slowapi  
-**Auth** — Email OTP, JWT (python-jose)  
-**Realtime** — WebSocket with JWT-authenticated sessions  
-**Database** — MongoDB Atlas M0  
-**Email** — Gmail SMTP (production) / console log (local dev)  
-**Infrastructure** — AWS EC2 t2.micro, Docker Compose, nginx  
-**CI** — GitHub Actions  
+### Frontend
+
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Web Crypto](https://img.shields.io/badge/Web_Crypto-API-4285F4?logo=googlechrome&logoColor=white)
+
+Chat UI, client-side encryption, and WebSocket client — all in the browser.
+
+### Backend
+
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![Motor](https://img.shields.io/badge/Motor-async_MongoDB-47A248?logo=mongodb&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)
+
+REST + WebSocket API, JWT auth, rate limiting, and ciphertext relay.
+
+### Auth & realtime
+
+![JWT](https://img.shields.io/badge/JWT-HS256-000000?logo=jsonwebtokens&logoColor=white)
+![OTP](https://img.shields.io/badge/Email_OTP-Gmail_SMTP-EA4335?logo=gmail&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-JWT_authenticated-010101?logo=socketdotio&logoColor=white)
+
+Passwordless login, short-lived sessions, and live encrypted messaging.
+
+### Data & infrastructure
+
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_M0-47A248?logo=mongodb&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-EC2_t2.micro-FF9900?logo=amazonaws&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![nginx](https://img.shields.io/badge/nginx-TLS-009639?logo=nginx&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+
+Atlas stores ciphertext only. EC2 runs the production stack. CI runs on every push.
 
 Full details → [docs/TECH-STACK.md](docs/TECH-STACK.md)
 
