@@ -64,23 +64,20 @@ Conventional messaging platforms persist messages on third-party infrastructure,
 ### Deployment topology
 
 ```mermaid
-flowchart TB
-    subgraph Client["Client tier"]
-        Browser["Browser<br/>React 18 · TypeScript · Web Crypto API"]
+flowchart LR
+    subgraph Client["Client"]
+        A["React SPA<br/>Web Crypto API"]
     end
-
-    subgraph Compute["Application tier — AWS EC2"]
-        Nginx["nginx<br/>TLS termination · static assets"]
-        API["FastAPI<br/>JWT auth · ciphertext relay · rate limits"]
-        Nginx --> API
+    subgraph EC2["AWS EC2"]
+        B["nginx"]
+        C["FastAPI"]
+        B --> C
     end
-
-    subgraph Data["Data tier"]
-        Atlas["MongoDB Atlas M0<br/>users · otp_codes · rooms · room_keys · messages"]
+    subgraph Cloud["Data"]
+        D[("MongoDB Atlas<br/>users · rooms · messages")]
     end
-
-    Browser -->|"HTTPS / WSS"| Nginx
-    API -->|"TLS"| Atlas
+    A <-->|HTTPS / WSS| B
+    C <-->|TLS| D
 ```
 
 **Golden rule:** plaintext must never reach the backend or database.
