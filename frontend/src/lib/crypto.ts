@@ -21,7 +21,10 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 
 export async function generateKeyPair(): Promise<KeyPairBundle> {
   const keyPair = await crypto.subtle.generateKey(ECDH_PARAMS, true, ["deriveKey", "deriveBits"]);
+  return bundleFromKeyPair(keyPair);
+}
 
+async function bundleFromKeyPair(keyPair: CryptoKeyPair): Promise<KeyPairBundle> {
   const publicJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
   const raw = new TextEncoder().encode(JSON.stringify(publicJwk));
   const digest = await crypto.subtle.digest("SHA-256", raw);
@@ -37,6 +40,46 @@ export async function generateKeyPair(): Promise<KeyPairBundle> {
     publicJwk,
     fingerprint,
   };
+}
+
+const roomKeyStorageKey = (roomId: string) => `studysafe_room_keys_${roomId}`;
+
+/** Reuse keys per browser tab session so refresh does not break encryption. */
+export async function loadOrCreateRoomKeys(roomId: string): Promise<KeyPairBundle> {
+  const stored = sessionStorage.getItem(roomKeyStorageKey(roomId));
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as { publicJwk: JsonWebKey; privateJwk: JsonWebKey; fingerprint: string };
+      const privateKey = await crypto.subtle.importKey(
+        "jwk",
+        parsed.privateJwk,
+        ECDH_PARAMS,
+        true,
+        ["deriveKey", "deriveBits"],
+      );
+      const publicKey = await crypto.subtle.importKey("jwk", parsed.publicJwk, ECDH_PARAMS, true, []);
+      return {
+        publicKey,
+        privateKey,
+        publicJwk: parsed.publicJwk,
+        fingerprint: parsed.fingerprint,
+      };
+    } catch {
+      sessionStorage.removeItem(roomKeyStorageKey(roomId));
+    }
+  }
+
+  const bundle = await generateKeyPair();
+  const privateJwk = await crypto.subtle.exportKey("jwk", bundle.privateKey);
+  sessionStorage.setItem(
+    roomKeyStorageKey(roomId),
+    JSON.stringify({
+      publicJwk: bundle.publicJwk,
+      privateJwk,
+      fingerprint: bundle.fingerprint,
+    }),
+  );
+  return bundle;
 }
 
 async function importPublicKey(jwk: JsonWebKey): Promise<CryptoKey> {
