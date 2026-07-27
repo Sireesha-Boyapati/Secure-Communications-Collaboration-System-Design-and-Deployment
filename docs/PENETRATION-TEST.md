@@ -1,6 +1,8 @@
 # StudySafe — Penetration and Security Testing Notes
 
-**Environment:** Local (FastAPI, MongoDB, React) and production (AWS EC2)
+**Environment:** Local (FastAPI, MongoDB, React) and production (AWS EC2 — https://16.16.138.41)
+
+Peer groups testing after final demo: see [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md).
 
 ---
 
@@ -26,8 +28,11 @@ Manual security testing of the StudySafe application covering authentication, au
 | 10 | Security headers | `curl -I http://localhost:8000/health` | X-Frame-Options, X-Content-Type-Options | **PASS** | Medium |
 | 11 | JWT expiry | Use expired token on API | 401 Unauthorized | **PASS** | High |
 | 12 | XSS in message field | Send `<script>alert(1)</script>` | Rendered as text (React escapes) | **PASS** | Medium |
+| 13 | Send without verified keys | Skip Trust & keys verification | Send blocked; error in UI | **PASS** | Critical |
+| 14 | Epoch rotation on join | Join without share_history | Epoch increments; keys cleared | **PASS** | High |
+| 15 | Leave room rotation | POST /api/rooms/{id}/leave | Member removed; keys_rotated event | **PASS** | High |
 
-**Overall:** 12/12 passed on local environment.
+**Overall:** 15/15 passed on local environment.
 
 ---
 
@@ -55,12 +60,13 @@ Manual security testing of the StudySafe application covering authentication, au
 
 ## Known limitations (documented, not failures)
 
-| Limitation | Risk | Mitigation planned |
-|------------|------|-------------------|
-| JWT in localStorage | XSS could steal token | HttpOnly cookies (Phase 2) |
-| OTP logged in dev console | Dev only — not production | AWS SES in production |
-| AWS not deployed yet | Local demo only | EC2 + ALB documented in `deploy/README.md` |
-| No CSP header yet | XSS surface | Content-Security-Policy (Phase 2) |
+| Limitation | Risk | Mitigation |
+|------------|------|------------|
+| JWT in localStorage | XSS could steal token | HttpOnly cookies (future) |
+| OTP logged in dev console | Dev only — not production | Gmail SMTP on EC2 |
+| Self-signed TLS on demo EC2 | Browser warning | Let's Encrypt for production |
+| No CSP header yet | XSS surface | Content-Security-Policy (future) |
+| Server cannot prove key honesty | MITM if user skips verify | Trust UI + epoch rotation |
 
 ---
 

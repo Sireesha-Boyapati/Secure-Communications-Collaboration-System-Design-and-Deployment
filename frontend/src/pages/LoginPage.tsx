@@ -44,15 +44,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page realtime-bg">
-      <div className="auth-glow auth-glow-a" aria-hidden />
-      <div className="auth-glow auth-glow-b" aria-hidden />
-      <div className="auth-glow auth-glow-c" aria-hidden />
-
-      <div className="auth-card glass">
+    <div className="auth-page">
+      <div className="auth-card">
         <div className="auth-brand-row">
           <div className="auth-logo-sm" aria-hidden>
-            <span className="live-dot" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="22" height="22">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
           </div>
           <div>
             <h1>StudySafe</h1>

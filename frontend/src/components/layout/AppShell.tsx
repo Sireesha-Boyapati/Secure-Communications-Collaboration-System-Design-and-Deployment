@@ -43,7 +43,7 @@ export default function AppShell() {
       setRoomName("");
       setShowCreate(false);
       await loadRooms();
-      setSuccess(`Room created! Share invite code: ${room.invite_code}`);
+      setSuccess(`Room created — invite: ${room.invite_code}`);
       navigate(`/room/${room.id}`, { state: { highlightInvite: room.invite_code } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to create room");
@@ -64,7 +64,7 @@ export default function AppShell() {
       setSuccess(`Joined ${room.name}.${rotated}`);
       navigate(`/room/${room.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Invalid invite code — not the room name");
+      setError(err instanceof ApiError ? err.message : "Invalid invite code");
     }
   };
 
@@ -73,118 +73,101 @@ export default function AppShell() {
     : null;
 
   return (
-    <div className="app-shell realtime-bg">
-      <aside className="sidebar glass-dark">
-        <div className="sidebar-brand">
-          <div className="brand-mark" aria-hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-          </div>
-          <div>
-            <strong>StudySafe</strong>
-            <span>Encrypted teams</span>
-          </div>
+    <div className="teams-shell app-bg">
+      <nav className="teams-rail" aria-label="App navigation">
+        <div className="rail-logo" title="StudySafe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
         </div>
+        <Link to="/dashboard" className={`rail-btn ${location.pathname === "/dashboard" ? "active" : ""}`} title="Home">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
+          <span>Home</span>
+        </Link>
+        <div className="rail-btn active-static" title="Secure chat">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
+          <span>Chat</span>
+        </div>
+      </nav>
 
-        <div className="sidebar-actions">
-          <button type="button" className="sidebar-btn" onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }}>
-            + New room
+      <aside className="teams-sidebar">
+        <header className="teams-sidebar-header">
+          <h1>StudySafe</h1>
+          <span className="teams-subtitle">Encrypted teams</span>
+        </header>
+
+        <div className="teams-sidebar-actions">
+          <button type="button" className="teams-primary-btn" onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }}>
+            + New channel
           </button>
-          <button type="button" className="sidebar-btn sidebar-btn-ghost" onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }}>
+          <button type="button" className="teams-secondary-btn" onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }}>
             Join with code
           </button>
         </div>
 
         {showCreate && (
-          <form className="sidebar-form" onSubmit={(e) => void handleCreate(e)}>
-            <input
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              placeholder="Room name (e.g. B9IS103 Team)"
-              required
-            />
+          <form className="teams-form" onSubmit={(e) => void handleCreate(e)}>
+            <input value={roomName} onChange={(e) => setRoomName(e.target.value)} placeholder="Channel name" required />
             <button type="submit">Create</button>
           </form>
         )}
 
         {showJoin && (
-          <form className="sidebar-form" onSubmit={(e) => void handleJoin(e)}>
+          <form className="teams-form" onSubmit={(e) => void handleJoin(e)}>
             <input
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="e.g. K7M2XP (not room name)"
+              placeholder="Invite code e.g. K7M2XP"
               maxLength={8}
               required
             />
-            <label className="sidebar-checkbox">
-              <input
-                type="checkbox"
-                checked={shareHistory}
-                onChange={(e) => setShareHistory(e.target.checked)}
-              />
-              Share chat history (keeps same encryption epoch)
+            <label className="teams-check">
+              <input type="checkbox" checked={shareHistory} onChange={(e) => setShareHistory(e.target.checked)} />
+              Share chat history (same encryption epoch)
             </label>
-            <p className="sidebar-checkbox-hint">
-              Unchecked = new epoch, keys rotate, prior messages locked (MS Teams style).
-            </p>
-            <button type="submit">Join</button>
+            <button type="submit">Join channel</button>
           </form>
         )}
 
-        <nav className="room-nav" aria-label="Your rooms">
-          <p className="room-nav-label">Workspaces</p>
+        <div className="teams-channel-list">
+          <p className="teams-section-label">Your channels</p>
           {loading ? (
-            <p className="sidebar-muted">Loading rooms…</p>
+            <p className="teams-muted">Loading…</p>
           ) : rooms.length === 0 ? (
-            <p className="sidebar-muted">No rooms yet. Create or join one above.</p>
+            <p className="teams-muted">No channels yet.</p>
           ) : (
             <ul>
               {rooms.map((room) => (
                 <li key={room.id}>
-                  <Link
-                    to={`/room/${room.id}`}
-                    className={`room-link ${activeRoomId === room.id ? "active" : ""}`}
-                  >
-                    <span className="room-hash">#</span>
-                    <span className="room-link-text">
-                      <span className="room-link-name">{room.name}</span>
-                      <span className="room-link-meta">
-                        {room.member_count} members · code <strong>{room.invite_code}</strong>
-                      </span>
+                  <Link to={`/room/${room.id}`} className={`teams-channel ${activeRoomId === room.id ? "active" : ""}`}>
+                    <span className="channel-icon">#</span>
+                    <span className="channel-info">
+                      <span className="channel-name">{room.name}</span>
+                      <span className="channel-meta">{room.member_count} members · epoch {room.crypto_epoch ?? 1}</span>
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-        </nav>
+        </div>
 
-        <Link to="/dashboard" className={`sidebar-home ${location.pathname === "/dashboard" ? "active" : ""}`}>
-          Overview
-        </Link>
+        {error && <div className="teams-toast teams-toast-error">{error}</div>}
+        {success && <div className="teams-toast teams-toast-ok">{success}</div>}
 
-        {error && <div className="sidebar-error">{error}</div>}
-        {success && <div className="sidebar-success">{success}</div>}
-
-        <div className="sidebar-user">
-          <div
-            className="avatar avatar-sm"
-            style={{ background: getAvatarColor(user?.display_name ?? "?") }}
-          >
+        <footer className="teams-user-bar">
+          <span className="avatar avatar-sm" style={{ background: getAvatarColor(user?.display_name ?? "?") }}>
             {getInitials(user?.display_name ?? "?")}
-          </div>
-          <div className="sidebar-user-info">
+          </span>
+          <div className="teams-user-info">
             <strong>{user?.display_name}</strong>
             <span>{user?.email}</span>
           </div>
-          <button type="button" className="sign-out-btn" onClick={logout} title="Sign out">
-            Sign out
-          </button>
-        </div>
+          <button type="button" className="teams-signout" onClick={logout}>Sign out</button>
+        </footer>
       </aside>
 
-      <main className="main-panel">
+      <main className="teams-main">
         <Outlet context={{ rooms, reloadRooms: loadRooms }} />
       </main>
     </div>

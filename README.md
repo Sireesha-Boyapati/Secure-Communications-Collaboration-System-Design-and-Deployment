@@ -47,9 +47,17 @@ Conventional messaging platforms persist messages on third-party infrastructure,
 
 ### Realtime collaboration
 
+- Microsoft Teams–style interface: icon rail, channel sidebar, presence avatars, and live connection badge
 - JWT-authenticated WebSocket relay with presence and typing indicators
 - Automatic reconnection with live connection status in the user interface
 - Encrypted message history persisted in MongoDB and decrypted on the client
+
+### Key trust and rotation (forward secrecy on membership change)
+
+- **Two-way fingerprint verification** — client-side trust store; messaging blocked until all peer keys are verified
+- **Crypto epoch** — monotonic counter per room; messages tagged with epoch for history filtering
+- **Automatic key rotation** — joining without history or leaving a room increments epoch, clears server public keys, and broadcasts `keys_rotated`
+- **Key change detection** — server logs `KEY_CHANGE` when a user re-registers a different public key at the same epoch
 
 ### Production deployment
 
@@ -131,7 +139,9 @@ sequenceDiagram
 5. **Message encryption** — Plaintext is encrypted locally. The payload includes per-recipient ciphertext and metadata (sender, timestamp).
 6. **Relay and storage** — Server stores and forwards ciphertext without decryption capability. Peers decrypt on receipt using their private keys.
 
-**Out-of-band verification:** users compare SHA-256 key fingerprints via a secondary channel (e.g. Zoom or phone) to detect man-in-the-middle key substitution.
+**Out-of-band verification:** users compare SHA-256 key fingerprints in the **Trust & keys** panel (or via Zoom/phone) to detect man-in-the-middle key substitution. The app blocks sending until every teammate's key is marked verified.
+
+**Membership changes:** when a user joins without sharing history, or leaves the room, the crypto epoch increments and all room public keys are cleared. Remaining members must re-verify fingerprints before messaging resumes.
 
 ---
 
@@ -187,6 +197,8 @@ StudySafe is designed under the assumption that the application server and datab
 - Time-limited OTP codes and short-lived JWT tokens
 - Room membership validation on REST and WebSocket requests
 - End-to-end AES-256-GCM encryption with client-only private keys
+- Client-side trust policy with fingerprint verification before send
+- Crypto epoch rotation on join (no history) and leave events
 - Pydantic schema validation on all API request bodies
 - Rate limiting (60 requests per minute) and 64 KB WebSocket payload limits
 - HTTP security headers and honeypot decoy endpoints at `/api/admin/*`
@@ -226,7 +238,9 @@ cd frontend && npm install && npm run dev
 
 Without SMTP configuration, OTP codes are logged to the backend console: `[DEV OTP] email=... code=...`
 
-For multi-user testing, open two browsers with different email accounts and join the same room using the invite code.
+For multi-user testing, open two browsers with **different email accounts** and join the same channel using the invite code. Verify keys in **Trust & keys** before sending.
+
+**Professor / team demo:** see [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) (~15 min walkthrough).
 
 ---
 
@@ -261,21 +275,30 @@ cd frontend && npm test && npm run build
 
 Continuous integration runs on every push to the `main` branch.
 
-### Encryption verification
+### Encryption and trust verification
 
-1. Confirm padlock indicators on messages and review key fingerprints in the Encryption panel.
-2. Conduct a live chat session between two distinct user accounts in separate browsers.
-3. Inspect the MongoDB `messages` collection; `ciphertext_payload` must contain unreadable JSON.
-4. Review WebSocket frames in browser DevTools; payloads must not contain plaintext.
-5. Confirm the OpenAPI documentation exposes no message decryption endpoints.
+1. Two browsers, two **different** emails — create channel, join with invite code.
+2. Open **Trust & keys** — compare SHA-256 fingerprints; click **Verify** for each peer until the banner shows **End-to-end secured**.
+3. Send messages — confirm padlock icons; inspect MongoDB `ciphertext_payload` (unreadable JSON).
+4. DevTools → Network → WebSocket frames — no plaintext in payloads.
+5. Confirm OpenAPI docs expose no message decryption endpoints.
+6. Optional: leave room or re-join without history — epoch increments, keys rotate, trust resets.
+
+### Peer penetration testing
+
+After the final demo, the repository is shared with two peer groups for vulnerability analysis. Scope and rules: [docs/PEN-TEST-SCOPE.md](docs/PEN-TEST-SCOPE.md).
 
 ---
 
 ## Documentation
 
 - [Project overview](docs/STUDYSAFE.md)
+- [Live demo script](docs/DEMO-SCRIPT.md) — for team briefing and professor presentation
+- [Peer penetration test scope](docs/PEN-TEST-SCOPE.md) — rules for external testers
 - [Technology stack](docs/TECH-STACK.md)
 - [Security plan](docs/SECURITY-PLAN.md)
+- [Penetration test results](docs/PENETRATION-TEST.md)
+- [Realtime architecture](docs/REALTIME-ARCHITECTURE.md)
 - [Repository security](docs/REPO-SECURITY.md)
 - [Deployment options](docs/DEPLOYMENT-OPTIONS.md)
 - [AWS deployment guide](deploy/aws/DEPLOY-AWS.md)

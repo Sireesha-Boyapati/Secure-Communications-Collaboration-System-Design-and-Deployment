@@ -16,12 +16,14 @@ Implementation security model for StudySafe. The full threat analysis is in the 
 ## Security layers
 
 1. **E2E encryption (client)** — primary confidentiality control
-2. **JWT authentication** — API and WebSocket access
-3. **Rate limiting** — brute-force and abuse prevention
-4. **GitHub branch protection** — repository integrity
-5. **CODEOWNERS** — mandatory review on security-sensitive files
-6. **Honeypot decoy** — reconnaissance detection
-7. **Docker service isolation** — limits blast radius between services
+2. **Trust verification (client)** — fingerprint verification before send; local trust store per room/user
+3. **Crypto epoch rotation (server + client)** — key material invalidated on membership change
+4. **JWT authentication** — API and WebSocket access
+5. **Rate limiting** — brute-force and abuse prevention
+6. **GitHub branch protection** — repository integrity
+7. **CODEOWNERS** — mandatory review on security-sensitive files
+8. **Honeypot decoy** — reconnaissance detection
+9. **Docker service isolation** — limits blast radius between services
 
 ---
 
@@ -57,12 +59,39 @@ Only Mahendra, Sireesha, Oree, and Sudheer may push code. See [REPO-SECURITY.md]
 | Reconnaissance | Honeypot `/api/admin/*` | `backend/app/security/honeypot.py` |
 | XSS / clickjacking | Security headers | `backend/app/security/middleware.py` |
 | Server data breach | E2E — ciphertext only | `frontend/src/lib/crypto.ts` |
+| MITM key substitution | Client trust store + verify-before-send | `frontend/src/lib/trustStore.ts` |
+| Stale keys after member leaves | Crypto epoch + server key wipe | `backend/app/services/room_service.py` |
+| Fake public key re-registration | Epoch-scoped registration + KEY_CHANGE audit | `backend/app/routers/rooms.py` |
 | Large payload DoS | 64 KB WebSocket cap | `backend/app/main.py` |
 | Injection | Pydantic validation | `backend/app/models/schemas.py` |
 
 ---
 
-## Production hardening checklist
+## Key trust and rotation model
+
+```mermaid
+sequenceDiagram
+    participant A as Alice (browser)
+    participant S as FastAPI relay
+    participant B as Bob (browser)
+
+    A->>S: Register public key (epoch N)
+    B->>S: Join without share_history
+    S->>S: Increment epoch to N+1, delete room_keys
+    S->>A: WebSocket keys_rotated
+    S->>B: WebSocket keys_rotated
+    A->>A: Clear local keys, re-register at epoch N+1
+    B->>B: Generate keys, register at epoch N+1
+    A->>A: Verify Bob fingerprint in trust store
+    B->>B: Verify Alice fingerprint
+    A->>S: Send ciphertext (epoch N+1)
+    S->>B: Relay ciphertext
+```
+
+**Client trust store** (`localStorage`): per room/user/fingerprint — statuses `unverified`, `verified`, `changed`.  
+**Send gate:** `ChatRoom` blocks compose until `allPeersVerified()`.
+
+---
 
 | Control | Action |
 |---------|--------|

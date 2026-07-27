@@ -1,110 +1,132 @@
 ﻿# StudySafe — Live Demo Guide
 
-End-to-end walkthrough for local setup, OTP authentication, and realtime encrypted chat between two users.
+Step-by-step walkthrough for team briefing (Tuesday) and professor presentation (Wednesday).
 
 **Duration:** ~15 minutes  
-**Prerequisites:** Docker (optional), Python 3.12+, Node.js 20+, two browsers
+**Live URL:** https://16.16.138.41 (accept self-signed certificate)  
+**Prerequisites:** Two browsers, two different email addresses
 
 ---
 
-## 1. Start the stack
+## What you are demonstrating
 
-```bash
-# Terminal 1 — database + API
-docker compose up mongodb -d
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt
-cp .env.example .env   # first run only
-uvicorn app.main:app --reload --port 8000
-
-# Terminal 2 — frontend (run inside WSL/Linux, not Windows CMD on UNC paths)
-cd frontend
-npm install            # first run only
-npm run dev
-```
-
-| Service | URL |
-|---------|-----|
-| Application | http://localhost:5173 |
-| OpenAPI docs | http://localhost:8000/docs |
-| Health check | http://localhost:8000/health |
+| Goal | Evidence |
+|------|----------|
+| Realtime secure collaboration | Teams-style UI, live presence, typing indicators |
+| End-to-end encryption | Padlocks on messages; ciphertext in MongoDB / DevTools |
+| Identity | Email OTP + JWT — no passwords stored |
+| Trust model | Fingerprint verification blocks send until peers verified |
+| Forward secrecy on membership change | Crypto epoch rotates on join-without-history / leave |
 
 ---
 
-## 2. User A — register and create a room
+## 1. Login (Browser A — Alice)
 
-1. Open **Browser A** → http://localhost:5173
-2. Enter email `alice@studysafe.test` and display name **Alice**
-3. Click **Send OTP**
-4. In Terminal 1, copy the code from: `[DEV OTP] email=... code=......`
-5. Enter OTP → verify → **Dashboard**
-6. Create room **Security Lab**
-7. Copy the **invite code**
-8. Open the room → note the **key fingerprint** in the chat header
+1. Open https://16.16.138.41
+2. Enter email and display name **Alice** → **Send OTP**
+3. Check email (or backend log if local) → enter OTP → **Dashboard**
+4. UI: left **icon rail** + **channel sidebar** (Microsoft Teams layout)
 
-**Demonstrates:** communications-channel identity (email OTP), JWT session, room creation.
+**Say:** "Passwordless OTP — server never stores passwords."
 
 ---
 
-## 3. User B — join the same room
+## 2. Create channel (Alice)
 
-1. Open **Browser B** (incognito or second browser)
-2. Register **Bob** with a different email via OTP
-3. **Join room** using the invite code
-4. Confirm both browsers show **Live** badge and **Live now (2)**
+1. Click **+ New channel** → name e.g. **Security Lab**
+2. Note the **invite code** in the success toast and channel header
+3. Open the channel — banner shows trust status (yellow until peers verified)
 
-**Demonstrates:** invite-only access, WebSocket presence, authenticated relay.
-
----
-
-## 4. Realtime features
-
-| Feature | Action | Expected result |
-|---------|--------|-----------------|
-| Typing indicator | Type in Browser A without sending | Browser B shows typing animation |
-| Encrypted send | Send a message from Browser A | Browser B decrypts and displays plaintext |
-| Ciphertext on wire | DevTools → Network → WS or REST | Payload is JSON ciphertext, not readable message |
-| History on rejoin | Refresh Browser A | Prior messages load and decrypt |
-| Auto-reconnect | Brief network drop | **Live** badge returns after reconnect |
-
-**Demonstrates:** E2E encryption, maliciously curious server model (relay sees ciphertext only).
+**Say:** "Invite-only — room name alone is not enough; you need the 6-character code."
 
 ---
 
-## 5. Security evidence (optional deep dive)
+## 3. Join channel (Browser B — Bob)
+
+1. Incognito / second browser → sign in as **Bob** with a **different email**
+2. **Join with code** → paste invite code
+3. Leave **Share chat history** unchecked (default) — keys will rotate
+4. Both browsers show **Live** connection badge and online avatars
+
+**Say:** "Default join rotates encryption epoch — old ciphertext keys are invalidated on the server."
+
+---
+
+## 4. Trust & keys (both users)
+
+1. Open **Trust & keys** tab (mobile) or right panel (desktop)
+2. Each user reads their SHA-256 fingerprint aloud (or via Zoom chat)
+3. Click **Verify** for the teammate's key
+4. Banner turns green: **End-to-end secured**
+
+**Say:** "This is two-way verification — blocks MITM if someone swapped keys on the server. Send is disabled until everyone is verified."
+
+---
+
+## 5. Encrypted chat
+
+1. Alice sends: `Meeting password is X`
+2. Bob sees plaintext with **padlock** icon
+3. Alice types without sending → Bob sees typing indicator
+
+**Say:** "Plaintext never leaves the browser unencrypted."
+
+---
+
+## 6. Prove the server is blind (optional deep dive)
 
 | Check | How |
 |-------|-----|
-| API requires auth | Open `/api/rooms/mine` without token → 401 |
-| OpenAPI | http://localhost:8000/docs — typed auth, rooms, messages, online |
-| Rate limiting | Rapid OTP requests → 429 after limit |
-| Honeypot | `GET /api/admin/users` → decoy JSON; IP logged in backend |
-| Automated tests | `cd backend && pytest -v` · `cd frontend && npm test && npm run build` |
-| CI | GitHub Actions badge on README |
+| Ciphertext on wire | DevTools → Network → WS → message frame = JSON base64 blob |
+| Ciphertext in DB | MongoDB `messages.ciphertext_payload` — unreadable |
+| No decrypt API | https://16.16.138.41/docs — no decrypt endpoint |
+| Auth required | `/api/rooms/mine` without JWT → 401 |
 
 ---
 
-## 6. Docker one-command alternative
+## 7. Key rotation demo (optional, 2 min)
+
+1. Bob clicks **Leave room** in Trust & keys panel
+2. Alice sees **keys rotated** — epoch increments
+3. Alice must re-verify if a new member joins
+
+**Say:** "When membership changes, we don't trust old keys — epoch bumps and public keys are cleared server-side."
+
+---
+
+## 8. Automated tests (if asked)
 
 ```bash
-cp backend/.env.example backend/.env
-docker compose up --build
+cd backend && pytest -v
+cd frontend && npm test && npm run build
 ```
 
-Frontend: http://localhost:5173 · API: http://localhost:8000/docs
+CI badge on README runs these on every push.
 
 ---
 
-## 7. Assessment alignment (what this demo proves)
+## Common pitfalls
 
-| CA requirement (40 marks design) | Demo evidence |
-|----------------------------------|---------------|
-| Encrypted messaging without pre-meeting key exchange | ECDH key agreement via server public-key registry |
-| Identity authentication | Email OTP + JWT |
-| Self-hosted relay | FastAPI WebSocket + MongoDB ciphertext store |
-| Documented security | README §10–§13, `docs/SECURITY-PLAN.md` |
-| Realtime collaboration | Presence, typing, encrypted group chat |
+| Problem | Fix |
+|---------|-----|
+| Same email in both browsers | Use two different emails — same email = same user |
+| Cannot send messages | Verify all peer keys in Trust & keys first |
+| Web Crypto error | Must use HTTPS — accept self-signed cert on EC2 |
+| Bob cannot find room | Join with **invite code**, not channel name |
 
-Peer vulnerability analysis (20 + 20 marks): [PEER-SYSTEM-ANALYSIS.md](PEER-SYSTEM-ANALYSIS.md)  
-Reactive mitigations (20 marks): README §12–§13 and peer doc §Reactive analysis.
+---
+
+## Local alternative
+
+```bash
+cd backend && uvicorn app.main:app --reload --port 8000
+cd frontend && npm run dev
+```
+
+App: http://localhost:5173 — OTP in terminal: `[DEV OTP] email=... code=...`
+
+---
+
+## After Wednesday — peer penetration testing
+
+Share repo with peer groups per course instructions. Scope and rules: [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md)

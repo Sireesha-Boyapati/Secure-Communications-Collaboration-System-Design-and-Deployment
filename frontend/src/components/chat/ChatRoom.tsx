@@ -42,6 +42,7 @@ export default function ChatRoom({
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"messages" | "security">("messages");
   const wsRef = useRef<RealtimeConnection | null>(null);
   const peerMapRef = useRef<Map<string, PublicKeyEntry>>(new Map());
   const keysRef = useRef<KeyPairBundle | null>(null);
@@ -439,6 +440,23 @@ export default function ChatRoom({
 
       <TrustBanner roomId={roomId} peers={peers} cryptoEpoch={cryptoEpoch} trustTick={trustTick} />
 
+      <div className="chat-tabs">
+        <button
+          type="button"
+          className={`chat-tab ${activeTab === "messages" ? "active" : ""}`}
+          onClick={() => setActiveTab("messages")}
+        >
+          Messages
+        </button>
+        <button
+          type="button"
+          className={`chat-tab ${activeTab === "security" ? "active" : ""}`}
+          onClick={() => setActiveTab("security")}
+        >
+          Trust &amp; keys
+        </button>
+      </div>
+
       {memberCount != null && memberCount < 2 && otherOnline.length === 0 && (
         <div className="demo-tip-banner">
           <strong>Demo tip:</strong> Open a second browser (Incognito) and sign in with a{" "}
@@ -465,6 +483,7 @@ export default function ChatRoom({
       )}
 
       <div className="chat-body">
+        {activeTab === "messages" ? (
         <div className="messages-pane">
           {error && <div className="error-box chat-error">{error}</div>}
 
@@ -496,8 +515,20 @@ export default function ChatRoom({
             </button>
           </div>
         </div>
+        ) : (
+          <div className="messages-pane" style={{ padding: "0.75rem 1rem" }}>
+            <SecurityPanel
+              roomId={roomId}
+              keys={keys}
+              peers={peers}
+              cryptoEpoch={cryptoEpoch}
+              onTrustChange={bumpTrust}
+              onLeaveRoom={() => void handleLeaveRoom()}
+            />
+          </div>
+        )}
 
-        <aside className="chat-aside">
+        <aside className="chat-aside teams-aside-desktop">
           <div className="aside-block">
             <h3>Online — {onlineUsers.length}</h3>
             <ul className="online-list">

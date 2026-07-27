@@ -27,14 +27,16 @@ A self-hosted ciphertext relay that never sees plaintext:
 | Feature | Status |
 |---------|--------|
 | Email OTP authentication + JWT sessions | Implemented |
-| Invite-only rooms (6-character codes) | Implemented |
+| Invite-only channels (6-character codes) | Implemented |
+| Microsoft Teams–style UI (rail, sidebar, channels) | Implemented |
 | Client-side E2E encryption (Web Crypto API) | Implemented |
 | Public key registry per room | Implemented |
+| Two-way fingerprint trust verification | Implemented |
+| Crypto epoch + key rotation on join/leave | Implemented |
 | WebSocket realtime chat | Implemented |
 | Presence and typing indicators | Implemented |
 | MongoDB Atlas persistence | Implemented |
 | AWS EC2 production deployment (Docker + nginx) | Implemented |
-| Key fingerprint verification UI | Implemented |
 
 ---
 
@@ -59,10 +61,13 @@ A self-hosted ciphertext relay that never sees plaintext:
 
 1. Open the app in Browser 1 → sign in as Alice with email A
 2. Open an incognito window → sign in as Bob with **a different email**
-3. Alice creates a room and shares the **invite code** with Bob
-4. Alice sends a message — show padlock icons and ciphertext in MongoDB / DevTools
-5. Bob receives and decrypts the message locally
-6. Compare key fingerprints in **Encryption & keys**
+3. Alice creates a channel and shares the **invite code** with Bob
+4. Both open **Trust & keys** → verify each other's SHA-256 fingerprints
+5. Alice sends a message — show padlock icons and ciphertext in MongoDB / DevTools
+6. Bob receives and decrypts the message locally
+7. Optional: Bob leaves → epoch rotates; demonstrate trust reset
+
+Full script: [DEMO-SCRIPT.md](DEMO-SCRIPT.md)
 
 ---
 
@@ -70,9 +75,13 @@ A self-hosted ciphertext relay that never sees plaintext:
 
 | Document | Description |
 |----------|-------------|
+| [DEMO-SCRIPT.md](DEMO-SCRIPT.md) | Live demo for professor / team |
+| [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md) | Peer penetration test rules |
 | [TECH-STACK.md](TECH-STACK.md) | Technology stack and architecture |
 | [WHY-TECH-CHOICES.md](WHY-TECH-CHOICES.md) | Rationale for stack decisions |
 | [FOLDER-STRUCTURE.md](FOLDER-STRUCTURE.md) | Repository layout |
 | [SECURITY-PLAN.md](SECURITY-PLAN.md) | Trust model and security controls |
+| [PENETRATION-TEST.md](PENETRATION-TEST.md) | Internal test results |
+| [REALTIME-ARCHITECTURE.md](REALTIME-ARCHITECTURE.md) | WebSocket and presence design |
 | [REPO-SECURITY.md](REPO-SECURITY.md) | GitHub access control and branch protection |
 | [DEPLOYMENT-OPTIONS.md](DEPLOYMENT-OPTIONS.md) | Local Docker vs AWS deployment |
