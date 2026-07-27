@@ -8,10 +8,16 @@ export async function createRoom(name: string): Promise<Room> {
   });
 }
 
-export async function joinRoom(inviteCode: string): Promise<Room> {
-  return apiFetch<Room>("/api/rooms/join", {
+export async function joinRoom(inviteCode: string, shareHistory = false): Promise<Room & { keys_rotated?: boolean }> {
+  return apiFetch<Room & { keys_rotated?: boolean }>("/api/rooms/join", {
     method: "POST",
-    body: JSON.stringify({ invite_code: inviteCode }),
+    body: JSON.stringify({ invite_code: inviteCode, share_history: shareHistory }),
+  });
+}
+
+export async function leaveRoom(roomId: string): Promise<Room> {
+  return apiFetch<Room>(`/api/rooms/${encodeURIComponent(roomId)}/leave`, {
+    method: "POST",
   });
 }
 
@@ -28,13 +34,15 @@ export async function registerPublicKey(
   username: string,
   publicKeyJwk: JsonWebKey,
   fingerprint: string,
-): Promise<void> {
-  await apiFetch(`/api/rooms/${encodeURIComponent(roomId)}/keys`, {
+  cryptoEpoch: number,
+): Promise<{ key_changed?: boolean }> {
+  return apiFetch(`/api/rooms/${encodeURIComponent(roomId)}/keys`, {
     method: "POST",
     body: JSON.stringify({
       username,
       public_key_jwk: publicKeyJwk,
       fingerprint,
+      crypto_epoch: cryptoEpoch,
     }),
   });
 }

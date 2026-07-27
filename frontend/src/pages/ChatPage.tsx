@@ -24,6 +24,7 @@ export default function ChatPage() {
       inviteCode={room?.invite_code}
       memberCount={room?.member_count}
       username={user.display_name}
+      cryptoEpoch={room?.crypto_epoch ?? 1}
     />
   );
 }

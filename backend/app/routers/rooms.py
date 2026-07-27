@@ -10,14 +10,29 @@ from app.models.schemas import (
     PublicKeyEntry,
     PublicKeyListResponse,
     PublicKeyRegister,
+    PublicKeyRegisterResponse,
     RoomCreate,
     RoomJoin,
     RoomResponse,
 )
 from app.services.room_service import room_service
+from app.websocket import events
 from app.websocket.manager import manager
 
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
+
+
+async def _broadcast_keys_rotated(room_id: str, epoch: int, reason: str, username: str = "") -> None:
+    await manager.broadcast(
+        room_id,
+        {
+            "type": events.KEYS_ROTATED,
+            "crypto_epoch": epoch,
+            "reason": reason,
+            "username": username,
+            "message": f"Encryption keys rotated (epoch {epoch}) — verify teammates again",
+        },
+    )
 
 
 @router.post("", response_model=RoomResponse, status_code=201)
@@ -32,14 +47,41 @@ async def create_room(
         raise http_error(exc) from exc
 
 
-@router.post("/join", response_model=RoomResponse)
+@router.post("/join")
 async def join_room(
     payload: RoomJoin,
     user: Annotated[dict, Depends(get_current_user)],
-) -> RoomResponse:
+) -> dict:
     try:
-        room = await room_service.join_room(user["id"], payload.invite_code)
-        return RoomResponse(**room)
+        room = await room_service.join_room(
+            user["id"], payload.invite_code, payload.share_history
+        )
+        if room.get("keys_rotated"):
+            await _broadcast_keys_rotated(
+                room["id"],
+                room["crypto_epoch"],
+                room.get("rotation_reason") or "member_joined",
+                user["display_name"],
+            )
+        return room
+    except StudySafeError as exc:
+        raise http_error(exc) from exc
+
+
+@router.post("/{room_id}/leave")
+async def leave_room(
+    room_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+) -> dict:
+    try:
+        room = await room_service.leave_room(user["id"], room_id)
+        await _broadcast_keys_rotated(
+            room_id,
+            room["crypto_epoch"],
+            room.get("rotation_reason") or "member_left",
+            user["display_name"],
+        )
+        return room
     except StudySafeError as exc:
         raise http_error(exc) from exc
 
@@ -64,12 +106,12 @@ async def get_room(
         raise http_error(exc) from exc
 
 
-@router.post("/{room_id}/keys", response_model=PublicKeyEntry, status_code=201)
+@router.post("/{room_id}/keys", response_model=PublicKeyRegisterResponse, status_code=201)
 async def register_public_key(
     room_id: str,
     payload: PublicKeyRegister,
     user: Annotated[dict, Depends(get_current_user)],
-) -> PublicKeyEntry:
+) -> PublicKeyRegisterResponse:
     try:
         entry = await room_service.register_public_key(
             user["id"],
@@ -77,8 +119,9 @@ async def register_public_key(
             payload.username,
             payload.public_key_jwk,
             payload.fingerprint,
+            payload.crypto_epoch,
         )
-        return PublicKeyEntry(**entry)
+        return PublicKeyRegisterResponse(**entry)
     except StudySafeError as exc:
         raise http_error(exc) from exc
 
@@ -90,7 +133,10 @@ async def list_public_keys(
 ) -> PublicKeyListResponse:
     try:
         keys = await room_service.list_public_keys(user["id"], room_id)
-        return PublicKeyListResponse(room_id=room_id, keys=[PublicKeyEntry(**k) for k in keys])
+        return PublicKeyListResponse(
+            room_id=room_id,
+            keys=[PublicKeyEntry(**k) for k in keys],
+        )
     except StudySafeError as exc:
         raise http_error(exc) from exc
 

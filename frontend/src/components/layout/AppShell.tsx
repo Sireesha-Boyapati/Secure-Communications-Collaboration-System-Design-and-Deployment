@@ -18,6 +18,7 @@ export default function AppShell() {
   const [success, setSuccess] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [shareHistory, setShareHistory] = useState(false);
 
   const loadRooms = async () => {
     try {
@@ -54,11 +55,13 @@ export default function AppShell() {
     setError("");
     setSuccess("");
     try {
-      const room = await joinRoom(inviteCode);
+      const room = await joinRoom(inviteCode, shareHistory);
       setInviteCode("");
+      setShareHistory(false);
       setShowJoin(false);
       await loadRooms();
-      setSuccess(`Joined ${room.name}`);
+      const rotated = room.keys_rotated ? " Keys rotated — verify teammates." : "";
+      setSuccess(`Joined ${room.name}.${rotated}`);
       navigate(`/room/${room.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Invalid invite code — not the room name");
@@ -114,6 +117,17 @@ export default function AppShell() {
               maxLength={8}
               required
             />
+            <label className="sidebar-checkbox">
+              <input
+                type="checkbox"
+                checked={shareHistory}
+                onChange={(e) => setShareHistory(e.target.checked)}
+              />
+              Share chat history (keeps same encryption epoch)
+            </label>
+            <p className="sidebar-checkbox-hint">
+              Unchecked = new epoch, keys rotate, prior messages locked (MS Teams style).
+            </p>
             <button type="submit">Join</button>
           </form>
         )}

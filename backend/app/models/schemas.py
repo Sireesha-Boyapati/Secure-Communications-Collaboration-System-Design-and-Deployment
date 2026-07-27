@@ -38,6 +38,7 @@ class RoomCreate(BaseModel):
 
 class RoomJoin(BaseModel):
     invite_code: str = Field(min_length=4, max_length=8)
+    share_history: bool = False
 
 
 class RoomResponse(BaseModel):
@@ -45,6 +46,7 @@ class RoomResponse(BaseModel):
     name: str
     invite_code: str
     member_count: int
+    crypto_epoch: int
     created_at: str
 
 
@@ -52,12 +54,18 @@ class PublicKeyRegister(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     public_key_jwk: dict
     fingerprint: str = Field(min_length=8, max_length=128)
+    crypto_epoch: int = Field(ge=1)
 
 
 class PublicKeyEntry(BaseModel):
     username: str
     public_key_jwk: dict
     fingerprint: str
+    crypto_epoch: int
+
+
+class PublicKeyRegisterResponse(PublicKeyEntry):
+    key_changed: bool = False
 
 
 class PublicKeyListResponse(BaseModel):

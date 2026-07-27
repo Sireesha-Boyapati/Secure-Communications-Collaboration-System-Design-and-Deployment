@@ -1,6 +1,8 @@
 ﻿import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchMessageHistory, fetchRoomKeys, registerPublicKey } from "../../api/rooms";
-import { decryptFromSender, encryptForRecipient, loadOrCreateRoomKeys } from "../../lib/crypto";
+import { useNavigate } from "react-router-dom";
+import { fetchMessageHistory, fetchRoomKeys, getRoom, leaveRoom, registerPublicKey } from "../../api/rooms";
+import { clearRoomKeys, decryptFromSender, encryptForRecipient, loadOrCreateRoomKeys } from "../../lib/crypto";
+import { allPeersVerified, clearRoomTrust } from "../../lib/trustStore";
 import { connectWebSocket, type RealtimeConnection } from "../../lib/websocket";
 import type { ChatMessage, ConnectionStatus, EncryptedPayload, KeyPairBundle, PublicKeyEntry } from "../../types";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
@@ -9,6 +11,7 @@ import { getAvatarColor, getInitials } from "../../lib/avatars";
 import ConnectionBadge from "./ConnectionBadge";
 import MessageBubble from "./MessageBubble";
 import SecurityPanel from "./SecurityPanel";
+import TrustBanner from "./TrustBanner";
 import TypingIndicator from "./TypingIndicator";
 
 interface Props {
@@ -17,11 +20,22 @@ interface Props {
   inviteCode?: string;
   memberCount?: number;
   username: string;
+  cryptoEpoch?: number;
 }
 
-export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, username }: Props) {
+export default function ChatRoom({
+  roomId,
+  roomName,
+  inviteCode,
+  memberCount,
+  username,
+  cryptoEpoch: initialEpoch = 1,
+}: Props) {
+  const navigate = useNavigate();
   const [keys, setKeys] = useState<KeyPairBundle | null>(null);
   const [peers, setPeers] = useState<PublicKeyEntry[]>([]);
+  const [cryptoEpoch, setCryptoEpoch] = useState(initialEpoch);
+  const [trustTick, setTrustTick] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { onlineUsers, setOnlineUsers } = useOnlineUsers(roomId, username);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -30,22 +44,90 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
   const [error, setError] = useState("");
   const wsRef = useRef<RealtimeConnection | null>(null);
   const peerMapRef = useRef<Map<string, PublicKeyEntry>>(new Map());
+  const keysRef = useRef<KeyPairBundle | null>(null);
+  const epochRef = useRef(cryptoEpoch);
   const typingTimeoutRef = useRef<number | null>(null);
   const scrollRef = useAutoScroll(messages);
+
+  useEffect(() => {
+    epochRef.current = cryptoEpoch;
+  }, [cryptoEpoch]);
+
+  useEffect(() => {
+    keysRef.current = keys;
+  }, [keys]);
+
+  useEffect(() => {
+    setCryptoEpoch(initialEpoch);
+  }, [initialEpoch]);
+
+  const bumpTrust = () => setTrustTick((n) => n + 1);
 
   const loadPeers = useCallback(async () => {
     const data = await fetchRoomKeys(roomId);
     const list: PublicKeyEntry[] = data.keys ?? [];
     setPeers(list.filter((p) => p.username !== username));
     peerMapRef.current = new Map(list.map((p) => [p.username, p]));
+    bumpTrust();
   }, [roomId, username]);
+
+  const setupKeys = useCallback(
+    async (epoch: number) => {
+      const keyBundle = await loadOrCreateRoomKeys(roomId, epoch);
+      setKeys(keyBundle);
+      keysRef.current = keyBundle;
+      await registerPublicKey(roomId, username, keyBundle.publicJwk, keyBundle.fingerprint, epoch);
+      await loadPeers();
+      return keyBundle;
+    },
+    [roomId, username, loadPeers],
+  );
+
+  const rotateKeys = useCallback(
+    async (newEpoch: number, reason: string, who?: string) => {
+      clearRoomKeys(roomId);
+      clearRoomTrust(roomId);
+      setCryptoEpoch(newEpoch);
+      epochRef.current = newEpoch;
+      setMessages([]);
+      setPeers([]);
+      peerMapRef.current = new Map();
+
+      const keyBundle = await setupKeys(newEpoch);
+      bumpTrust();
+
+      setMessages([
+        {
+          id: crypto.randomUUID(),
+          from: "system",
+          text: `Encryption keys rotated to epoch ${newEpoch}${who ? ` (${who})` : ""} — ${reason}. Verify teammates again.`,
+          timestamp: new Date().toISOString(),
+          encrypted: false,
+        },
+      ]);
+
+      return keyBundle;
+    },
+    [roomId, setupKeys],
+  );
 
   const decryptPayload = useCallback(
     async (
       payload: EncryptedPayload,
       myKeys: KeyPairBundle,
       peerMap: Map<string, PublicKeyEntry>,
+      epoch: number,
     ): Promise<ChatMessage | null> => {
+      if (payload.crypto_epoch !== undefined && payload.crypto_epoch !== epoch) {
+        return {
+          id: crypto.randomUUID(),
+          from: payload.from,
+          text: `[Message from previous session (epoch ${payload.crypto_epoch}) — keys rotated]`,
+          timestamp: payload.timestamp,
+          encrypted: true,
+        };
+      }
+
       if (payload.from === username) {
         return {
           id: crypto.randomUUID(),
@@ -80,7 +162,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
         return {
           id: crypto.randomUUID(),
           from: payload.from,
-          text: "[encrypted — verify key fingerprints]",
+          text: "[encrypted — verify teammate key or wait for key sync]",
           timestamp: payload.timestamp,
           encrypted: true,
         };
@@ -90,7 +172,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
   );
 
   const loadHistory = useCallback(
-    async (myKeys: KeyPairBundle) => {
+    async (myKeys: KeyPairBundle, epoch: number) => {
       const data = await fetchMessageHistory(roomId);
       const peerMap = peerMapRef.current;
       const history: ChatMessage[] = [];
@@ -98,7 +180,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
       for (const item of data.messages ?? []) {
         try {
           const payload = JSON.parse(item.ciphertext_payload) as EncryptedPayload;
-          const msg = await decryptPayload(payload, myKeys, peerMap);
+          const msg = await decryptPayload(payload, myKeys, peerMap, epoch);
           if (msg) history.push(msg);
         } catch {
           // skip malformed history
@@ -113,8 +195,18 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
   );
 
   const handleIncoming = useCallback(
-    async (raw: unknown, myKeys: KeyPairBundle) => {
+    async (raw: unknown) => {
       const data = raw as Record<string, unknown>;
+      const myKeys = keysRef.current;
+      if (!myKeys) return;
+
+      if (data.type === "keys_rotated") {
+        const newEpoch = Number(data.crypto_epoch);
+        if (newEpoch && newEpoch !== epochRef.current) {
+          await rotateKeys(newEpoch, String(data.message ?? "membership change"), String(data.username ?? ""));
+        }
+        return;
+      }
 
       if (data.type === "presence" && Array.isArray(data.online)) {
         setOnlineUsers(data.online as string[]);
@@ -157,8 +249,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
         return;
       }
 
-      const sender = peerMapRef.current.get(payload.from);
-      if (!sender) {
+      if (!peerMapRef.current.get(payload.from)) {
         await loadPeers();
       }
       const senderKey = peerMapRef.current.get(payload.from);
@@ -169,37 +260,10 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
 
       setTypingUsers((prev) => prev.filter((u) => u !== payload.from));
 
-      try {
-        const text = await decryptFromSender(
-          mine.ciphertext,
-          mine.iv,
-          myKeys.privateKey,
-          senderKey.public_key_jwk,
-        );
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            from: payload.from,
-            text,
-            timestamp: payload.timestamp,
-            encrypted: true,
-          },
-        ]);
-      } catch {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            from: payload.from,
-            text: "[decryption failed — verify key fingerprints]",
-            timestamp: new Date().toISOString(),
-            encrypted: true,
-          },
-        ]);
-      }
+      const msg = await decryptPayload(payload, myKeys, peerMapRef.current, epochRef.current);
+      if (msg) setMessages((prev) => [...prev, msg]);
     },
-    [loadPeers, username, setOnlineUsers],
+    [loadPeers, username, setOnlineUsers, rotateKeys, decryptPayload],
   );
 
   useEffect(() => {
@@ -207,16 +271,19 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
 
     (async () => {
       try {
-        const keyBundle = await loadOrCreateRoomKeys(roomId);
+        const room = await getRoom(roomId);
+        const epoch = room.crypto_epoch ?? initialEpoch;
         if (cancelled) return;
-        setKeys(keyBundle);
+        setCryptoEpoch(epoch);
+        epochRef.current = epoch;
 
-        await registerPublicKey(roomId, username, keyBundle.publicJwk, keyBundle.fingerprint);
-        await loadPeers();
-        await loadHistory(keyBundle);
+        const keyBundle = await setupKeys(epoch);
+        if (cancelled) return;
+
+        await loadHistory(keyBundle, epoch);
 
         const conn = connectWebSocket(roomId, (msg) => {
-          void handleIncoming(msg, keyBundle);
+          void handleIncoming(msg);
         }, setStatus);
         wsRef.current = conn;
       } catch (e) {
@@ -228,7 +295,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
       cancelled = true;
       wsRef.current?.close();
     };
-  }, [roomId, username, handleIncoming, loadPeers, loadHistory]);
+  }, [roomId, username, handleIncoming, setupKeys, loadHistory, initialEpoch]);
 
   const otherOnline = onlineUsers.filter((u) => u !== username);
 
@@ -252,6 +319,18 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
     if (inviteCode) void navigator.clipboard.writeText(inviteCode);
   };
 
+  const handleLeaveRoom = async () => {
+    if (!window.confirm("Leave this room? Encryption keys will rotate for remaining members.")) return;
+    try {
+      await leaveRoom(roomId);
+      clearRoomKeys(roomId);
+      clearRoomTrust(roomId);
+      navigate("/dashboard");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to leave room");
+    }
+  };
+
   const sendMessage = async () => {
     const conn = wsRef.current;
     if (!input.trim() || !keys || !conn || conn.readyState !== WebSocket.OPEN) return;
@@ -268,11 +347,16 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
     if (!peerList.length) {
       setError(
         memberCount != null && memberCount < 2
-          ? "Demo needs 2 different email accounts — same Gmail in both windows = same user."
+          ? "Demo needs 2 different email accounts — same email in both windows = same user."
           : otherOnline.length > 0
             ? "Syncing encryption keys… wait a moment and try again."
             : "No teammate in room yet — share the invite code.",
       );
+      return;
+    }
+
+    if (!allPeersVerified(roomId, peerList)) {
+      setError("Verify every teammate's key in Trust & keys before sending (two-way fingerprint check).");
       return;
     }
 
@@ -293,6 +377,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
       type: "encrypted_message",
       from: username,
       timestamp,
+      crypto_epoch: cryptoEpoch,
       recipients,
     };
 
@@ -327,6 +412,8 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
                   Invite: <code>{inviteCode}</code>
                 </>
               )}
+              {" · "}
+              Epoch {cryptoEpoch}
             </p>
           </div>
         </div>
@@ -349,6 +436,8 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
           <ConnectionBadge status={status} />
         </div>
       </header>
+
+      <TrustBanner roomId={roomId} peers={peers} cryptoEpoch={cryptoEpoch} trustTick={trustTick} />
 
       {memberCount != null && memberCount < 2 && otherOnline.length === 0 && (
         <div className="demo-tip-banner">
@@ -383,7 +472,7 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
             {messages.length === 0 && (
               <div className="chat-empty">
                 <p>No messages yet</p>
-                <span>Say hello — your messages are encrypted before they leave this browser.</span>
+                <span>Verify teammate keys, then send — messages encrypt before they leave this browser.</span>
               </div>
             )}
             {messages.map((m) => (
@@ -423,7 +512,14 @@ export default function ChatRoom({ roomId, roomName, inviteCode, memberCount, us
               ))}
             </ul>
           </div>
-          <SecurityPanel keys={keys} peers={peers} />
+          <SecurityPanel
+            roomId={roomId}
+            keys={keys}
+            peers={peers}
+            cryptoEpoch={cryptoEpoch}
+            onTrustChange={bumpTrust}
+            onLeaveRoom={() => void handleLeaveRoom()}
+          />
         </aside>
       </div>
     </div>

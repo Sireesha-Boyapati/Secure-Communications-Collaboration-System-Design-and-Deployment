@@ -15,6 +15,7 @@ export interface Room {
   name: string;
   invite_code: string;
   member_count: number;
+  crypto_epoch: number;
   created_at: string;
 }
 
@@ -22,12 +23,14 @@ export interface PublicKeyEntry {
   username: string;
   public_key_jwk: JsonWebKey;
   fingerprint: string;
+  crypto_epoch: number;
 }
 
 export interface EncryptedPayload {
   type: string;
   from: string;
   timestamp: string;
+  crypto_epoch: number;
   recipients: Array<{ to: string; ciphertext: string; iv: string }>;
 }
 

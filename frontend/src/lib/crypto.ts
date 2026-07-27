@@ -53,26 +53,39 @@ async function bundleFromKeyPair(keyPair: CryptoKeyPair): Promise<KeyPairBundle>
 
 const roomKeyStorageKey = (roomId: string) => `studysafe_room_keys_${roomId}`;
 
-/** Reuse keys per browser tab session so refresh does not break encryption. */
-export async function loadOrCreateRoomKeys(roomId: string): Promise<KeyPairBundle> {
+export function clearRoomKeys(roomId: string): void {
+  sessionStorage.removeItem(roomKeyStorageKey(roomId));
+}
+
+/** Reuse keys per browser tab session; rotate when crypto_epoch changes. */
+export async function loadOrCreateRoomKeys(roomId: string, cryptoEpoch: number): Promise<KeyPairBundle> {
   const stored = sessionStorage.getItem(roomKeyStorageKey(roomId));
   if (stored) {
     try {
-      const parsed = JSON.parse(stored) as { publicJwk: JsonWebKey; privateJwk: JsonWebKey; fingerprint: string };
-      const privateKey = await crypto.subtle.importKey(
-        "jwk",
-        parsed.privateJwk,
-        ECDH_PARAMS,
-        true,
-        ["deriveKey", "deriveBits"],
-      );
-      const publicKey = await crypto.subtle.importKey("jwk", parsed.publicJwk, ECDH_PARAMS, true, []);
-      return {
-        publicKey,
-        privateKey,
-        publicJwk: parsed.publicJwk,
-        fingerprint: parsed.fingerprint,
+      const parsed = JSON.parse(stored) as {
+        publicJwk: JsonWebKey;
+        privateJwk: JsonWebKey;
+        fingerprint: string;
+        cryptoEpoch: number;
       };
+      if (parsed.cryptoEpoch !== cryptoEpoch) {
+        sessionStorage.removeItem(roomKeyStorageKey(roomId));
+      } else {
+        const privateKey = await crypto.subtle.importKey(
+          "jwk",
+          parsed.privateJwk,
+          ECDH_PARAMS,
+          true,
+          ["deriveKey", "deriveBits"],
+        );
+        const publicKey = await crypto.subtle.importKey("jwk", parsed.publicJwk, ECDH_PARAMS, true, []);
+        return {
+          publicKey,
+          privateKey,
+          publicJwk: parsed.publicJwk,
+          fingerprint: parsed.fingerprint,
+        };
+      }
     } catch {
       sessionStorage.removeItem(roomKeyStorageKey(roomId));
     }
@@ -86,6 +99,7 @@ export async function loadOrCreateRoomKeys(roomId: string): Promise<KeyPairBundl
       publicJwk: bundle.publicJwk,
       privateJwk,
       fingerprint: bundle.fingerprint,
+      cryptoEpoch,
     }),
   );
   return bundle;

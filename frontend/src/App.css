@@ -735,9 +735,93 @@
 .peer-list { list-style: none; padding: 0; margin: 0; }
 .peer-list li {
   display: flex;
-  justify-content: space-between;
-  padding: 0.3rem 0;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0;
   border-bottom: 1px solid var(--glass-border);
+}
+
+.peer-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.peer-row-main code { font-size: 0.68rem; word-break: break-all; }
+
+.peer-row-actions { display: flex; gap: 0.35rem; }
+
+.trust-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.trust-verified { background: rgba(0, 212, 170, 0.2); color: var(--accent); }
+.trust-unverified { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+.trust-changed { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+
+.trust-btn {
+  font-size: 0.68rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 212, 170, 0.2);
+  color: var(--accent);
+  border: 1px solid rgba(0, 212, 170, 0.35);
+  box-shadow: none;
+}
+
+.trust-btn:hover { transform: none; background: rgba(0, 212, 170, 0.3); }
+.trust-btn-muted { background: transparent; color: var(--text-muted); border-color: var(--glass-border); }
+
+.leave-room-btn {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 0.45rem;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  box-shadow: none;
+}
+
+.leave-room-btn:hover { transform: none; background: rgba(248, 113, 113, 0.2); }
+
+.trust-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.trust-banner strong { font-size: 0.85rem; }
+.trust-banner span { color: var(--text-muted); font-size: 0.78rem; }
+
+.trust-banner-ok { background: rgba(0, 212, 170, 0.08); border-left: 3px solid var(--accent); }
+.trust-banner-warn { background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; }
+.trust-banner-danger { background: rgba(248, 113, 113, 0.1); border-left: 3px solid #f87171; }
+.trust-banner-waiting { background: rgba(148, 163, 184, 0.08); border-left: 3px solid #94a3b8; }
+
+.sidebar-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  margin: 0.35rem 0;
+}
+
+.sidebar-checkbox input { margin-top: 0.15rem; }
+
+.sidebar-checkbox-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.35;
 }
 
 .connection-badge {
