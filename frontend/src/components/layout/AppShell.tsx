@@ -96,6 +96,9 @@ export default function AppShell() {
           <span className="teams-subtitle">Encrypted teams</span>
         </header>
 
+        {error && <div className="teams-toast teams-toast-error">{error}</div>}
+        {success && <div className="teams-toast teams-toast-ok">{success}</div>}
+
         <div className="teams-sidebar-actions">
           <button type="button" className="teams-primary-btn" onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }}>
             + New channel
@@ -151,9 +154,6 @@ export default function AppShell() {
             </ul>
           )}
         </div>
-
-        {error && <div className="teams-toast teams-toast-error">{error}</div>}
-        {success && <div className="teams-toast teams-toast-ok">{success}</div>}
 
         <footer className="teams-user-bar">
           <span className="avatar avatar-sm" style={{ background: getAvatarColor(user?.display_name ?? "?") }}>

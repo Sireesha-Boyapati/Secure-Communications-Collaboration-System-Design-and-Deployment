@@ -36,6 +36,12 @@ body {
   min-height: 100vh;
   background: var(--teams-bg);
   color: #f3f2f1;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
 }
 
 code {

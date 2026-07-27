@@ -1,7 +1,8 @@
 ﻿/* ===== Teams shell ===== */
 .teams-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--teams-bg);
 }
 
@@ -56,7 +57,8 @@
   border-right: 1px solid var(--teams-border);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .teams-sidebar-header {
@@ -117,7 +119,7 @@
   margin: 0;
 }
 
-.teams-channel-list { flex: 1; overflow-y: auto; }
+.teams-channel-list { flex: 1; min-height: 0; overflow-y: auto; }
 .teams-channel-list ul { list-style: none; padding: 0; margin: 0; }
 
 .teams-channel {
@@ -144,10 +146,12 @@
 .teams-muted { font-size: 0.8125rem; color: var(--text-muted); padding: 0 0.75rem; }
 
 .teams-toast {
-  margin: 0.5rem 0.75rem;
+  flex-shrink: 0;
+  margin: 0.35rem 0.75rem 0;
   padding: 0.5rem 0.65rem;
   border-radius: 4px;
   font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .teams-toast-error { background: rgba(232, 17, 35, 0.15); color: #f1707a; }
@@ -160,6 +164,8 @@
   padding: 0.75rem;
   border-top: 1px solid var(--teams-border);
   margin-top: auto;
+  flex-shrink: 0;
+  background: var(--teams-sidebar);
 }
 
 .teams-user-info { flex: 1; min-width: 0; }
@@ -172,9 +178,18 @@
   color: var(--text-muted);
   font-size: 0.6875rem;
   padding: 0.3rem 0.45rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.teams-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.teams-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
 /* ===== Login ===== */
 .auth-page {
@@ -183,6 +198,7 @@
   place-items: center;
   padding: 1.5rem;
   background: linear-gradient(135deg, #141414 0%, #1f1f1f 50%, #252423 100%);
+  overflow-y: auto;
 }
 
 .auth-card {
@@ -223,14 +239,17 @@
 /* ===== Home dashboard ===== */
 .home-view {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
   background: var(--teams-bg);
 }
 
-.home-view-inner { text-align: center; max-width: 520px; padding: 2rem; }
+.home-view-inner {
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
 
 .home-view h1 {
   margin: 0 0 0.75rem;
@@ -239,7 +258,7 @@
   color: #fff;
 }
 
-.home-lead { color: var(--text-muted); font-size: 0.9375rem; line-height: 1.6; margin: 0 0 1.5rem; }
+.home-lead { color: var(--text-muted); font-size: 0.9375rem; line-height: 1.6; margin: 0 0 1.5rem; max-width: 540px; }
 
 .home-stats {
   display: grid;
@@ -258,30 +277,84 @@
 .stat-card strong { display: block; font-size: 1.25rem; color: var(--teams-accent); }
 .stat-card span { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
-.conversation-preview-list { text-align: left; margin-top: 1rem; }
+.home-empty { text-align: left; padding: 2rem 0; }
 
-.conversation-preview {
+.home-recent { margin-top: 0.5rem; }
+
+.home-recent-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.home-recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-recent-item {
+  display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   background: var(--teams-panel);
   border: 1px solid var(--teams-border);
-  margin-bottom: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.home-recent-item:hover {
+  border-color: var(--teams-accent);
   text-decoration: none;
   color: inherit;
 }
 
-.conversation-preview:hover { border-color: var(--teams-accent); text-decoration: none; }
-.preview-title { display: block; font-weight: 600; font-size: 0.9375rem; }
-.preview-sub { font-size: 0.75rem; color: var(--text-muted); }
-.preview-live { font-size: 0.625rem; font-weight: 700; color: var(--teams-secure); text-transform: uppercase; }
+.home-recent-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.home-recent-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-recent-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.home-recent-live {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--teams-secure);
+  text-transform: uppercase;
+}
 
 /* ===== Chat (Teams channel view) ===== */
 .chat-view {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   background: var(--teams-bg);
 }
 

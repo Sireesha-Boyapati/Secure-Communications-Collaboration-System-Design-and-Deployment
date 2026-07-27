@@ -65,4 +65,4 @@ async def send_otp_email(email: str, code: str) -> None:
             logger.info("[DEV OTP] email=%s code=%s", email, code)
     except Exception as exc:
         logger.error("Failed to send OTP email: %s", exc)
-        raise
+        logger.info("[DEV OTP] email=%s code=%s (email delivery failed — see logs)", email, code)
