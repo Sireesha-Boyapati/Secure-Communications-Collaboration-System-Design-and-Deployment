@@ -2,6 +2,8 @@
 
 **Team:** Mahendra · Sireesha · Oree · Sudheer
 
+**Live:** https://studysafe.duckdns.org · **API:** https://studysafe.duckdns.org/docs
+
 End-to-end encrypted realtime group chat for student project teams. Messages are encrypted in the browser before they reach AWS or MongoDB.
 
 ---
@@ -36,7 +38,7 @@ A self-hosted ciphertext relay that never sees plaintext:
 | WebSocket realtime chat | Implemented |
 | Presence and typing indicators | Implemented |
 | MongoDB Atlas persistence | Implemented |
-| AWS EC2 production deployment (Docker + nginx) | Implemented |
+| AWS EC2 + DuckDNS + Let's Encrypt | Implemented |
 
 ---
 

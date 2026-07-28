@@ -1,7 +1,7 @@
 # StudySafe — Peer Penetration Test Scope
 
 **Purpose:** Define what external peer groups may test, how to report findings, and what is out of scope.  
-**Live target:** https://16.16.138.41 (accept self-signed TLS once)  
+**Live target:** https://studysafe.duckdns.org  
 **Repository:** https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment
 
 ---
@@ -65,7 +65,7 @@ Using automated tools, manual testing, or AI-assisted analysis (e.g. Claude, Cha
 ### Phase 1 — Reconnaissance (30 min)
 
 - Read [README.md](../README.md) and [SECURITY-PLAN.md](SECURITY-PLAN.md)
-- Browse OpenAPI: `https://16.16.138.41/docs`
+- Browse OpenAPI: `https://studysafe.duckdns.org/docs`
 - Probe honeypot: `GET /api/admin/users` (expect decoy + log entry)
 - Map WebSocket endpoint: `/ws/room/{room_id}?token=`
 

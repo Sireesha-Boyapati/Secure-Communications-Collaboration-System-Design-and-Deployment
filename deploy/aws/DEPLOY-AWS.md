@@ -1,8 +1,11 @@
 # StudySafe on AWS (Free Tier)
 
-Deploy **frontend + backend together on one EC2 instance** — no local `uvicorn` or `npm run dev`. MongoDB stays on **MongoDB Atlas** (free M0). OTP emails use **AWS SES**.
+Deploy **frontend + backend together on one EC2 instance** — no local `uvicorn` or `npm run dev`. MongoDB stays on **MongoDB Atlas** (free M0). OTP emails use **Gmail SMTP**.
 
-**Estimated monthly cost on a new AWS student account:** $0 if you stay within free tier (1× `t2.micro`/`t3.micro`, SES sandbox emails, Atlas M0).
+**Production URL:** https://studysafe.duckdns.org  
+**Elastic IP:** `13.51.82.20` · **DNS:** DuckDNS · **TLS:** Let's Encrypt
+
+**Estimated monthly cost on a new AWS student account:** $0 if you stay within free tier (1× `t2.micro`/`t3.micro`, Atlas M0, DuckDNS free).
 
 ---
 
@@ -21,22 +24,44 @@ Browser → EC2:80 (nginx + React) → backend:8000 (FastAPI) → MongoDB Atlas
 
 **Recommended for your project:** Gmail SMTP (already working locally). AWS SES is optional later.
 
-One URL for everything, e.g. `https://3.120.xxx.xxx` — API, WebSocket, and UI on the same host.
+One URL for everything — e.g. `https://studysafe.duckdns.org` — API, WebSocket, and UI on the same host.
 
 ---
 
-## ⚠️ Must use HTTPS (not http://IP)
+## Production DNS (DuckDNS — recommended)
+
+1. Attach an **Elastic IP** to your EC2 instance (survives stop/start).
+2. Create a free subdomain at [duckdns.org](https://www.duckdns.org) (e.g. `studysafe.duckdns.org` → Elastic IP).
+3. Issue a Let's Encrypt certificate:
+
+```bash
+sudo apt install -y certbot
+docker compose -f docker-compose.prod.yml stop frontend
+sudo certbot certonly --standalone -d studysafe.duckdns.org
+sudo cp /etc/letsencrypt/live/studysafe.duckdns.org/fullchain.pem deploy/aws/certs/
+sudo cp /etc/letsencrypt/live/studysafe.duckdns.org/privkey.pem deploy/aws/certs/
+sudo chown ubuntu:ubuntu deploy/aws/certs/*.pem
+```
+
+4. Set `CORS_ORIGINS=https://studysafe.duckdns.org` in `backend/.env`.
+5. `docker compose -f docker-compose.prod.yml up -d --build`
+
+---
+
+## Must use HTTPS (not http://)
 
 Browsers **disable Web Crypto** on plain HTTP (except localhost). Without HTTPS you will see:
 
 `Cannot read properties of undefined (reading 'generateKey')`
 
-**Fix:** generate a self-signed cert and open **`https://YOUR_EC2_IP`** (accept browser warning once).
+**Option A — DuckDNS + Let's Encrypt** (production, no browser warning) — see above.
+
+**Option B — Self-signed IP cert** (demo only, accept browser warning):
 
 ```bash
-bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_PUBLIC_IP
-# backend/.env → CORS_ORIGINS=https://YOUR_EC2_PUBLIC_IP
-bash deploy/aws/deploy.sh YOUR_EC2_PUBLIC_IP
+bash deploy/aws/generate-selfsigned-cert.sh YOUR_ELASTIC_IP
+# backend/.env → CORS_ORIGINS=https://YOUR_ELASTIC_IP
+bash deploy/aws/deploy.sh YOUR_ELASTIC_IP
 ```
 
 Security group: allow **443** (HTTPS) inbound, not just 80.

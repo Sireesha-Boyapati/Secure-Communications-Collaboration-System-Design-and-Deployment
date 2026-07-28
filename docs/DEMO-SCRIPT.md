@@ -1,9 +1,9 @@
 ﻿# StudySafe — Live Demo Guide
 
-Step-by-step walkthrough for team briefing (Tuesday) and professor presentation (Wednesday).
+Step-by-step walkthrough for team briefing and professor presentation.
 
 **Duration:** ~15 minutes  
-**Live URL:** https://16.16.138.41 (accept self-signed certificate)  
+**Live URL:** https://studysafe.duckdns.org  
 **Prerequisites:** Two browsers, two different email addresses
 
 ---
@@ -22,9 +22,9 @@ Step-by-step walkthrough for team briefing (Tuesday) and professor presentation 
 
 ## 1. Login (Browser A — Alice)
 
-1. Open https://16.16.138.41
-2. Enter email and display name **Alice** → **Send OTP**
-3. Check email (or backend log if local) → enter OTP → **Dashboard**
+1. Open https://studysafe.duckdns.org
+2. Enter email and display name **Alice** → **Continue with email**
+3. Check Gmail for OTP → enter code → **Enter workspace**
 4. UI: left **icon rail** + **channel sidebar** (Microsoft Teams layout)
 
 **Say:** "Passwordless OTP — server never stores passwords."
@@ -59,7 +59,7 @@ Step-by-step walkthrough for team briefing (Tuesday) and professor presentation 
 3. Click **Verify** for the teammate's key
 4. Banner turns green: **End-to-end secured**
 
-**Say:** "This is two-way verification — blocks MITM if someone swapped keys on the server. Send is disabled until everyone is verified."
+**Say:** "Two-way verification blocks MITM if someone swapped keys on the server. Send is disabled until everyone is verified."
 
 ---
 
@@ -79,29 +79,16 @@ Step-by-step walkthrough for team briefing (Tuesday) and professor presentation 
 |-------|-----|
 | Ciphertext on wire | DevTools → Network → WS → message frame = JSON base64 blob |
 | Ciphertext in DB | MongoDB `messages.ciphertext_payload` — unreadable |
-| No decrypt API | https://16.16.138.41/docs — no decrypt endpoint |
+| No decrypt API | https://studysafe.duckdns.org/docs — no decrypt endpoint |
 | Auth required | `/api/rooms/mine` without JWT → 401 |
 
 ---
 
-## 7. Key rotation demo (optional, 2 min)
+## 7. Key rotation demo (optional)
 
-1. Bob clicks **Leave room** in Trust & keys panel
+1. Bob clicks **Leave room** in Trust & keys
 2. Alice sees **keys rotated** — epoch increments
-3. Alice must re-verify if a new member joins
-
-**Say:** "When membership changes, we don't trust old keys — epoch bumps and public keys are cleared server-side."
-
----
-
-## 8. Automated tests (if asked)
-
-```bash
-cd backend && pytest -v
-cd frontend && npm test && npm run build
-```
-
-CI badge on README runs these on every push.
+3. Re-verify keys when a new member joins
 
 ---
 
@@ -109,24 +96,14 @@ CI badge on README runs these on every push.
 
 | Problem | Fix |
 |---------|-----|
-| Same email in both browsers | Use two different emails — same email = same user |
-| Cannot send messages | Verify all peer keys in Trust & keys first |
-| Web Crypto error | Must use HTTPS — accept self-signed cert on EC2 |
-| Bob cannot find room | Join with **invite code**, not channel name |
+| Same email in both browsers | Use two different emails |
+| Cannot send messages | Verify all peer keys in Trust & keys |
+| OTP not received | Check Gmail spam; verify SMTP in EC2 `.env` |
 
 ---
 
-## Local alternative
+## After final demo — peer penetration testing
 
-```bash
-cd backend && uvicorn app.main:app --reload --port 8000
-cd frontend && npm run dev
-```
+Share repo with peer groups per course instructions. Scope: [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md)
 
-App: http://localhost:5173 — OTP in terminal: `[DEV OTP] email=... code=...`
-
----
-
-## After Wednesday — peer penetration testing
-
-Share repo with peer groups per course instructions. Scope and rules: [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md)
+**Live target for testers:** https://studysafe.duckdns.org

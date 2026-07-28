@@ -1,6 +1,6 @@
 # StudySafe — Penetration and Security Testing Notes
 
-**Environment:** Local (FastAPI, MongoDB, React) and production (AWS EC2 — https://16.16.138.41)
+**Environment:** Local and production (https://studysafe.duckdns.org)
 
 Peer groups testing after final demo: see [PEN-TEST-SCOPE.md](PEN-TEST-SCOPE.md).
 

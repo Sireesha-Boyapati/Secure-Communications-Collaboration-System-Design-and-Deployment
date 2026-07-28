@@ -11,13 +11,14 @@ Secure, end-to-end encrypted realtime messaging platform for confidential team c
 
 Messages are encrypted in the browser before transmission. The server stores and relays ciphertext only; private keys never leave the client device.
 
-**Live demo:** https://16.16.138.41  
-**API documentation:** https://16.16.138.41/docs  
+**Live application:** https://studysafe.duckdns.org  
+**API documentation:** https://studysafe.duckdns.org/docs  
+**Infrastructure:** AWS EC2 (Elastic IP `13.51.82.20`) · MongoDB Atlas · Let's Encrypt TLS  
 **Team workspace:** [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
 
 Development team: Mahendra, Sireesha, Oree, Sudheer
 
-> Production uses HTTPS with a self-signed certificate. Accept the browser security warning once to enable the Web Crypto API.
+> Production is served over **HTTPS** with a valid TLS certificate (Let's Encrypt via DuckDNS). Web Crypto requires a secure context — use the URL above, not plain HTTP.
 
 ---
 
@@ -246,23 +247,65 @@ For multi-user testing, open two browsers with **different email accounts** and 
 
 ## AWS production deployment
 
-The production environment runs on a single EC2 instance (Docker Compose: nginx, FastAPI, React). MongoDB Atlas is hosted separately.
+Production runs on a single **EC2** instance (Docker Compose: nginx, FastAPI, React) with **MongoDB Atlas** and **Gmail SMTP** for OTP.
+
+| Component | Value |
+|-----------|--------|
+| Public URL | https://studysafe.duckdns.org |
+| Elastic IP | `13.51.82.20` (persists across EC2 stop/start) |
+| DNS | [DuckDNS](https://www.duckdns.org) free subdomain |
+| TLS | Let's Encrypt (certbot) |
+
+### Initial server setup
 
 ```bash
-git clone https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment.git
-cd Secure-Communications-Collaboration-System-Design-and-Deployment
+git clone https://github.com/Sireesha-Boyapati/Secure-Communications-Collaboration-System-Design-and-Deployment.git studysafe
+cd studysafe
 bash deploy/aws/setup-ec2.sh
+# Log out and SSH back in
 
 cp deploy/aws/env.production.example backend/.env
-bash deploy/aws/generate-selfsigned-cert.sh YOUR_EC2_IP
-bash deploy/aws/deploy.sh YOUR_EC2_IP
+nano backend/.env   # MONGODB_URI, JWT_SECRET, SMTP_*, CORS_ORIGINS
 ```
 
-Configure `MONGODB_URI`, `JWT_SECRET`, `SMTP_*`, and `CORS_ORIGINS=https://YOUR_EC2_IP` in `backend/.env`.
+Set in `backend/.env`:
 
-Open https://YOUR_EC2_IP. Security group: ports 22 (SSH) and 443 (HTTPS).
+```env
+ENVIRONMENT=production
+CORS_ORIGINS=https://studysafe.duckdns.org
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=<openssl rand -hex 32>
+SMTP_HOST=smtp.gmail.com
+SMTP_USER=your@gmail.com
+SMTP_PASSWORD=<gmail-app-password>
+EMAIL_FROM=your@gmail.com
+```
 
-Deployment guide: [deploy/aws/DEPLOY-AWS.md](deploy/aws/DEPLOY-AWS.md)
+### TLS with DuckDNS + Let's Encrypt
+
+```bash
+# Point studysafe.duckdns.org → Elastic IP in DuckDNS console first
+sudo apt install -y certbot
+docker compose -f docker-compose.prod.yml stop frontend
+sudo certbot certonly --standalone -d studysafe.duckdns.org
+sudo cp /etc/letsencrypt/live/studysafe.duckdns.org/fullchain.pem deploy/aws/certs/
+sudo cp /etc/letsencrypt/live/studysafe.duckdns.org/privkey.pem deploy/aws/certs/
+sudo chown ubuntu:ubuntu deploy/aws/certs/*.pem
+bash deploy/aws/deploy.sh 13.51.82.20
+```
+
+### Updating a running server
+
+```bash
+cd ~/studysafe
+git pull origin main
+docker compose -f docker-compose.prod.yml build --no-cache frontend
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Security group: inbound **22** (SSH), **80** (HTTP redirect / certbot), **443** (HTTPS).
+
+Full guide: [deploy/aws/DEPLOY-AWS.md](deploy/aws/DEPLOY-AWS.md)
 
 ---
 
