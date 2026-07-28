@@ -336,7 +336,9 @@ After the final demo, the repository is shared with two peer groups for vulnerab
 ## Documentation
 
 - [Project overview](docs/STUDYSAFE.md)
-- [Live demo script](docs/DEMO-SCRIPT.md) — for team briefing and professor presentation
+- [How we built it with Cursor AI](docs/CURSOR-AI-DEVELOPMENT.md) — from scratch, build timeline
+- [Cursor AI prompts](docs/AI-CHAT-LOGS.md) — prompts used at each stage
+- [Live demo script](docs/DEMO-SCRIPT.md) — team demo walkthrough
 - [Peer penetration test scope](docs/PEN-TEST-SCOPE.md) — rules for external testers
 - [Technology stack](docs/TECH-STACK.md)
 - [Security plan](docs/SECURITY-PLAN.md)

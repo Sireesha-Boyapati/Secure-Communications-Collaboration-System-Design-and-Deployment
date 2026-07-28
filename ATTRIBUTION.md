@@ -8,6 +8,10 @@ Documentation of external libraries, references, and team contributions.
 
 Cursor AI (Claude) was used during development for scaffolding, refactoring, deployment scripts, and documentation. All AI-generated code was reviewed by the team. Security-critical cryptography uses the native **Web Crypto API** only — no custom crypto implementations.
 
+**Development record:**
+- [docs/CURSOR-AI-DEVELOPMENT.md](docs/CURSOR-AI-DEVELOPMENT.md) — how we started and built it step by step
+- [docs/AI-CHAT-LOGS.md](docs/AI-CHAT-LOGS.md) — Cursor prompts used at each stage
+
 **Team workspace (MoM, recordings):** [DBS SharePoint](https://mydbs-my.sharepoint.com/shared?ga=1&id=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments%2Fca%20project%20security&listurl=%2Fpersonal%2F20097954%5Fmydbs%5Fie%2FDocuments)
 
 ---
