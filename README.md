@@ -37,8 +37,10 @@ Conventional messaging platforms persist messages on third-party infrastructure,
 ### Identity and access control
 
 - Passwordless email OTP authentication with JWT sessions (HS256, 60-minute TTL)
+- **HttpOnly session cookie** on login plus **sessionStorage** token (migrated from localStorage) for WebSocket fallback
 - Invite-only rooms secured with 6-character access codes
 - JWT validation on all protected REST endpoints and WebSocket connections
+- OTP lockout after 5 failed attempts with explicit `otp_locked` error; verify rate limit 5/minute
 
 ### Encrypted messaging
 
@@ -50,12 +52,14 @@ Conventional messaging platforms persist messages on third-party infrastructure,
 
 - Microsoft Teams–style interface: icon rail, channel sidebar, presence avatars, and live connection badge
 - JWT-authenticated WebSocket relay with presence and typing indicators
+- **Message replay protection** — unique `msg_id` per message; MongoDB TTL deduplication rejects duplicates
 - Automatic reconnection with live connection status in the user interface
 - Encrypted message history persisted in MongoDB and decrypted on the client
 
 ### Key trust and rotation (forward secrecy on membership change)
 
-- **Two-way fingerprint verification** — client-side trust store; messaging blocked until all peer keys are verified
+- **Two-way fingerprint verification** — client-side trust store (sessionStorage); messaging blocked until all peer keys are verified
+- **Public-key username binding** — server rejects key registration if username ≠ authenticated display name
 - **Crypto epoch** — monotonic counter per room; messages tagged with epoch for history filtering
 - **Automatic key rotation** — joining without history or leaving a room increments epoch, clears server public keys, and broadcasts `keys_rotated`
 - **Key change detection** — server logs `KEY_CHANGE` when a user re-registers a different public key at the same epoch
@@ -196,13 +200,17 @@ StudySafe is designed under the assumption that the application server and datab
 
 - TLS encryption on all HTTP and WebSocket traffic
 - Time-limited OTP codes and short-lived JWT tokens
+- **HttpOnly cookie** for REST sessions; JWT in sessionStorage (not localStorage) for WebSocket
 - Room membership validation on REST and WebSocket requests
 - End-to-end AES-256-GCM encryption with client-only private keys
 - Client-side trust policy with fingerprint verification before send
 - Crypto epoch rotation on join (no history) and leave events
+- **MongoDB-backed message replay guard** (10-minute TTL on `msg_id`)
 - Pydantic schema validation on all API request bodies
 - Rate limiting (60 requests per minute) and 64 KB WebSocket payload limits
-- HTTP security headers and honeypot decoy endpoints at `/api/admin/*`
+- **Content-Security-Policy**, HSTS, X-Frame-Options, nosniff, and Referrer-Policy headers
+- Honeypot decoy endpoints at `/api/admin/*`
+- Production startup **blocks default JWT secret**; OTP codes never logged in production
 - Secrets managed via environment variables; excluded from version control
 
 ### Residual protection after server compromise
@@ -215,6 +223,37 @@ An attacker with full access to EC2 and MongoDB cannot:
 - Access a room without a valid JWT for an authorized member
 
 Further detail: [docs/SECURITY-PLAN.md](docs/SECURITY-PLAN.md)
+
+### Peer penetration testing and remediation (August 2026)
+
+After the final demo, **two peer groups** tested StudySafe against [docs/PEN-TEST-SCOPE.md](docs/PEN-TEST-SCOPE.md). They reported issues including JWT in localStorage, missing CSP, no message replay protection, OTP logging edge cases, and public-key username spoofing.
+
+**Remediation commit:** `f16aacb` — `fix(security): harden auth, CSP, replay protection, and OTP lockout`
+
+| # | Peer finding | Remediation |
+|---|--------------|-------------|
+| 1 | JWT in **localStorage** (XSS risk) | HttpOnly session cookie + **sessionStorage** with auto-migration from localStorage |
+| 2 | No **Content-Security-Policy** | CSP and HSTS on API (`backend/app/security/headers.py`) and nginx frontend |
+| 3 | **Message replay** — no deduplication | Client adds `msg_id` (UUID); server stores seen IDs in MongoDB `message_replays` with TTL |
+| 4 | OTP lockout unclear after 5 failures | Explicit `otp_locked` error; user must request a new code |
+| 5 | OTP verify rate limit too high | Reduced to **5/minute** (matches attempt cap) |
+| 6 | OTP could appear in logs if SMTP failed | OTP logged **development only**; production never logs codes |
+| 7 | **Username spoof** on public-key register | Server enforces username = authenticated display name |
+| 8 | Trust store in localStorage | Moved to **sessionStorage** (tab-scoped) |
+| 9 | Default JWT secret allowed in production | App **refuses to start** if default secret is still configured |
+
+**Verification:** 19/19 manual pen-test checks pass; 4 new automated tests in `backend/tests/test_security.py`.
+
+**Moodle report (Word):** [StudySafe-Security-Remediation.docx](StudySafe-Security-Remediation.docx) — full write-up with methodology, findings, and fixes.
+
+**Deploy fixes on EC2:**
+
+```bash
+cd ~/studysafe && git pull origin main
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Users may need to log in once after deploy (token storage migration). No `.env` changes required if `JWT_SECRET` is already set.
 
 ---
 
@@ -331,6 +370,8 @@ Continuous integration runs on every push to the `main` branch.
 
 After the final demo, the repository is shared with two peer groups for vulnerability analysis. Scope and rules: [docs/PEN-TEST-SCOPE.md](docs/PEN-TEST-SCOPE.md).
 
+Our team also reviewed two peer systems (SecureChat and Secure Communication System). After peers tested **StudySafe**, we implemented remediations in commit `f16aacb` — see **Peer penetration testing and remediation** under [Security](#security) and download [StudySafe-Security-Remediation.docx](StudySafe-Security-Remediation.docx) for the full Moodle report.
+
 ---
 
 ## Documentation
@@ -343,6 +384,8 @@ After the final demo, the repository is shared with two peer groups for vulnerab
 - [Technology stack](docs/TECH-STACK.md)
 - [Security plan](docs/SECURITY-PLAN.md)
 - [Penetration test results](docs/PENETRATION-TEST.md)
+- [Security remediation report (Word)](StudySafe-Security-Remediation.docx) — peer findings and fixes (Moodle)
+- [Security remediation report (Markdown)](StudySafe-Security-Remediation-Moodle.md)
 - [Realtime architecture](docs/REALTIME-ARCHITECTURE.md)
 - [Repository security](docs/REPO-SECURITY.md)
 - [Deployment options](docs/DEPLOYMENT-OPTIONS.md)
