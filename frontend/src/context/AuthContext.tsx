@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getMe } from "../api/auth";
+import { getMe, logoutSession } from "../api/auth";
 import { clearToken, getToken, setToken } from "../api/client";
 import type { User } from "../types";
 
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    void logoutSession().catch(() => undefined);
     clearToken();
     setUser(null);
   }, []);

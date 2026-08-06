@@ -54,15 +54,17 @@ async def send_otp_email(email: str, code: str) -> None:
         logger.info("[DEV OTP] email=%s code=%s", email, code)
         return
 
+    if not settings.email_delivery_configured:
+        logger.error("OTP email delivery not configured — cannot send code to %s", email)
+        raise RuntimeError("Email delivery is not configured")
+
     try:
         if settings.smtp_configured:
             await asyncio.to_thread(_send_via_smtp, email, subject, body)
             logger.info("OTP email sent to %s via SMTP (%s)", email, settings.smtp_host)
-        elif settings.ses_configured:
+        else:
             await asyncio.to_thread(_send_via_ses, email, subject, body)
             logger.info("OTP email sent to %s via SES", email)
-        else:
-            logger.info("[DEV OTP] email=%s code=%s", email, code)
     except Exception as exc:
-        logger.error("Failed to send OTP email: %s", exc)
-        logger.info("[DEV OTP] email=%s code=%s (email delivery failed — see logs)", email, code)
+        logger.error("Failed to send OTP email to %s: %s", email, exc)
+        raise RuntimeError("Failed to deliver verification email") from exc

@@ -376,6 +376,7 @@ export default function ChatRoom({
 
     const payload: EncryptedPayload = {
       type: "encrypted_message",
+      msg_id: crypto.randomUUID(),
       from: username,
       timestamp,
       crypto_epoch: cryptoEpoch,

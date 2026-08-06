@@ -28,6 +28,7 @@ export interface PublicKeyEntry {
 
 export interface EncryptedPayload {
   type: string;
+  msg_id: string;
   from: string;
   timestamp: string;
   crypto_epoch: number;

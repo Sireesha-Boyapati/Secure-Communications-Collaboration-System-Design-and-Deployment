@@ -10,17 +10,33 @@ export class ApiError extends Error {
 }
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const TOKEN_KEY = "studysafe_token";
+
+function readStoredToken(): string | null {
+  const fromSession = sessionStorage.getItem(TOKEN_KEY);
+  if (fromSession) return fromSession;
+
+  const legacy = localStorage.getItem(TOKEN_KEY);
+  if (legacy) {
+    sessionStorage.setItem(TOKEN_KEY, legacy);
+    localStorage.removeItem(TOKEN_KEY);
+    return legacy;
+  }
+  return null;
+}
 
 export function getToken(): string | null {
-  return localStorage.getItem("studysafe_token");
+  return readStoredToken();
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem("studysafe_token", token);
+  sessionStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 export function clearToken(): void {
-  localStorage.removeItem("studysafe_token");
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 export async function apiFetch<T>(
@@ -38,7 +54,11 @@ export async function apiFetch<T>(
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (res.status === 204) return undefined as T;
 

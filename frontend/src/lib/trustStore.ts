@@ -13,20 +13,33 @@ function storageKey(roomId: string): string {
   return `studysafe_trust_${roomId}`;
 }
 
+function readStorage(): Storage {
+  return sessionStorage;
+}
+
 function loadTrust(roomId: string): TrustMap {
   try {
-    const raw = localStorage.getItem(storageKey(roomId));
-    return raw ? (JSON.parse(raw) as TrustMap) : {};
+    const raw = readStorage().getItem(storageKey(roomId));
+    if (raw) return JSON.parse(raw) as TrustMap;
+
+    const legacy = localStorage.getItem(storageKey(roomId));
+    if (legacy) {
+      readStorage().setItem(storageKey(roomId), legacy);
+      localStorage.removeItem(storageKey(roomId));
+      return JSON.parse(legacy) as TrustMap;
+    }
+    return {};
   } catch {
     return {};
   }
 }
 
 function saveTrust(roomId: string, map: TrustMap): void {
-  localStorage.setItem(storageKey(roomId), JSON.stringify(map));
+  readStorage().setItem(storageKey(roomId), JSON.stringify(map));
 }
 
 export function clearRoomTrust(roomId: string): void {
+  readStorage().removeItem(storageKey(roomId));
   localStorage.removeItem(storageKey(roomId));
 }
 

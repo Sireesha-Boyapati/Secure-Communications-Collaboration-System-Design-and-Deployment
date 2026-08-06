@@ -17,12 +17,14 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.auth.jwt import decode_access_token
+from app.auth.cookies import read_auth_token
 from app.config import settings
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, AuthorizationError, ValidationError
 from app.core.logging import get_logger, setup_logging
 from app.db.client import close_db, connect_db
 from app.db.repositories.messages import message_repo
 from app.db.repositories.otp import otp_repo
+from app.db.repositories.replay import replay_repo
 from app.db.repositories.rooms import room_repo
 from app.db.repositories.users import user_repo
 from app.routers import auth, health, messages, rooms
@@ -36,14 +38,20 @@ from app.websocket.manager import manager
 logger = get_logger(__name__)
 
 
+DEFAULT_JWT_SECRET = "change-me-use-openssl-rand-hex-32"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    if not settings.is_development and settings.jwt_secret == DEFAULT_JWT_SECRET:
+        raise RuntimeError("JWT_SECRET must be set to a strong random value in production")
     await connect_db()
     await user_repo.ensure_indexes()
     await otp_repo.ensure_indexes()
     await room_repo.ensure_indexes()
     await message_repo.ensure_indexes()
+    await replay_repo.ensure_indexes()
     if settings.smtp_configured:
         logger.info("Email delivery: SMTP (%s)", settings.smtp_host)
     elif settings.ses_configured:
@@ -93,7 +101,9 @@ async def root() -> dict:
     }
 
 
-async def _authenticate_ws(token: str | None) -> dict:
+async def _authenticate_ws(websocket: WebSocket, token: str | None) -> dict:
+    if not token:
+        token = read_auth_token(websocket)
     if not token:
         raise AuthenticationError("WebSocket requires token", code="missing_token")
     payload = decode_access_token(token)
@@ -117,7 +127,7 @@ async def websocket_endpoint(
     token: str | None = None,
 ) -> None:
     try:
-        user = await _authenticate_ws(token)
+        user = await _authenticate_ws(websocket, token)
     except AuthenticationError:
         await websocket.close(code=4001, reason="Unauthorized")
         return
@@ -151,9 +161,20 @@ async def websocket_endpoint(
             except json.JSONDecodeError:
                 pass
 
-            await message_service.store_ciphertext(
-                user["id"], room_id, username, raw
-            )
+            try:
+                await message_service.store_ciphertext(
+                    user["id"], room_id, username, raw
+                )
+            except ValidationError:
+                await manager.send_personal(
+                    websocket, {"type": events.ERROR, "message": "Duplicate message rejected"}
+                )
+                continue
+            except AuthorizationError:
+                await manager.send_personal(
+                    websocket, {"type": events.ERROR, "message": "Not authorized to send"}
+                )
+                continue
 
             await manager.broadcast(
                 room_id,

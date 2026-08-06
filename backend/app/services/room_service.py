@@ -3,6 +3,7 @@
 from app.core.exceptions import AuthorizationError, NotFoundError, ValidationError
 from app.core.logging import get_logger
 from app.db.repositories.rooms import room_repo
+from app.db.repositories.users import user_repo
 
 logger = get_logger(__name__)
 
@@ -91,6 +92,15 @@ class RoomService:
     ) -> dict:
         if not await room_repo.is_member(room_id, user_id):
             raise AuthorizationError("Not a member of this room", code="not_member")
+
+        user = await user_repo.find_by_id(user_id)
+        if not user:
+            raise AuthorizationError("User not found", code="user_not_found")
+        if username.strip() != user["display_name"]:
+            raise ValidationError(
+                "Public key username must match your display name",
+                code="username_mismatch",
+            )
 
         current_epoch = await room_repo.get_crypto_epoch(room_id)
         if crypto_epoch != current_epoch:

@@ -109,10 +109,10 @@ For each finding, provide:
 
 | Limitation | Notes |
 |------------|-------|
-| JWT stored in localStorage | XSS could steal session; no HttpOnly cookie yet |
-| Server cannot cryptographically prove public keys are honest | Mitigated by client fingerprint verification + epoch rotation |
+| JWT in sessionStorage (WebSocket fallback) | HttpOnly cookie used for REST; XSS in same tab could still read sessionStorage |
+| Server cannot cryptographically prove public keys are honest | Mitigated by client fingerprint verification + epoch rotation + username binding |
 | Self-signed TLS on demo EC2 | Browser warning only; use Let's Encrypt for production |
-| OTP visible in dev console | Production uses Gmail SMTP; not applicable on EC2 |
+| OTP visible in dev console | Production uses Gmail SMTP; OTP never logged in production |
 
 ---
 

@@ -2,8 +2,9 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 
+from app.auth.cookies import clear_auth_cookie, set_auth_cookie
 from app.auth.dependencies import get_current_user
 from app.core.exceptions import StudySafeError, http_error
 from app.models.schemas import OtpRequest, OtpVerify, TokenResponse, UserResponse
@@ -23,13 +24,23 @@ async def request_otp(request: Request, payload: OtpRequest) -> None:
 
 
 @router.post("/otp/verify", response_model=TokenResponse)
-@limiter.limit("10/minute")
-async def verify_otp(request: Request, payload: OtpVerify) -> TokenResponse:
+@limiter.limit("5/minute")
+async def verify_otp(
+    request: Request,
+    response: Response,
+    payload: OtpVerify,
+) -> TokenResponse:
     try:
         result = await auth_service.verify_otp(payload.email, payload.code, payload.display_name)
+        set_auth_cookie(response, result["access_token"])
         return TokenResponse(**result)
     except StudySafeError as exc:
         raise http_error(exc) from exc
+
+
+@router.post("/logout", status_code=204)
+async def logout(response: Response) -> None:
+    clear_auth_cookie(response)
 
 
 @router.get("/me", response_model=UserResponse)

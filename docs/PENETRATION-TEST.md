@@ -31,8 +31,12 @@ Manual security testing of the StudySafe application covering authentication, au
 | 13 | Send without verified keys | Skip Trust & keys verification | Send blocked; error in UI | **PASS** | Critical |
 | 14 | Epoch rotation on join | Join without share_history | Epoch increments; keys cleared | **PASS** | High |
 | 15 | Leave room rotation | POST /api/rooms/{id}/leave | Member removed; keys_rotated event | **PASS** | High |
+| 16 | Content-Security-Policy | `curl -I /health` | CSP header present | **PASS** | Medium |
+| 17 | Message replay | Resend same `msg_id` over WebSocket | Duplicate rejected | **PASS** | High |
+| 18 | OTP lockout | 6th verify after 5 failures | `otp_locked` error | **PASS** | High |
+| 19 | Username spoof on key register | POST keys with wrong username | 422 username_mismatch | **PASS** | Medium |
 
-**Overall:** 15/15 passed on local environment.
+**Overall:** 19/19 passed on local environment.
 
 ---
 
@@ -62,11 +66,11 @@ Manual security testing of the StudySafe application covering authentication, au
 
 | Limitation | Risk | Mitigation |
 |------------|------|------------|
-| JWT in localStorage | XSS could steal token | HttpOnly cookies (future) |
-| OTP logged in dev console | Dev only — not production | Gmail SMTP on EC2 |
+| JWT also kept in sessionStorage for WebSocket fallback | XSS in same tab could steal token | HttpOnly cookie for REST; sessionStorage (not localStorage); CSP headers |
+| OTP logged in dev console | Dev only — not production | Gmail SMTP on EC2; no OTP in production logs |
 | Self-signed TLS on demo EC2 | Browser warning | Let's Encrypt for production |
-| No CSP header yet | XSS surface | Content-Security-Policy (future) |
-| Server cannot prove key honesty | MITM if user skips verify | Trust UI + epoch rotation |
+| Server cannot prove key honesty | MITM if user skips verify | Trust UI + epoch rotation + username binding on key register |
+| Private JWK in sessionStorage per tab | XSS could read keys for active session | Keys cleared on epoch rotation; tab-scoped sessionStorage only |
 
 ---
 

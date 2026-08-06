@@ -38,26 +38,26 @@ class OtpRepository:
             upsert=True,
         )
 
-    async def verify(self, email: str, code: str) -> bool:
+    async def verify(self, email: str, code: str) -> tuple[bool, str | None]:
         doc: dict[str, Any] | None = await self.collection.find_one({"email": email.lower()})
         if not doc:
-            return False
+            return False, None
 
         if doc.get("attempts", 0) >= 5:
-            return False
+            return False, "locked"
 
         if _utc(doc["expires_at"]) < datetime.now(timezone.utc):
-            return False
+            return False, None
 
         if doc["code"] != code:
             await self.collection.update_one(
                 {"email": email.lower()},
                 {"$inc": {"attempts": 1}},
             )
-            return False
+            return False, None
 
         await self.collection.delete_one({"email": email.lower()})
-        return True
+        return True, None
 
     async def ensure_indexes(self) -> None:
         await self.collection.create_index("email", unique=True)

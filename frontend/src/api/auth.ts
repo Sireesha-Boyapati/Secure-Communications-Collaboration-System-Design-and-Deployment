@@ -27,3 +27,7 @@ export async function verifyOtp(
 export async function getMe(): Promise<User> {
   return apiFetch<User>("/api/auth/me");
 }
+
+export async function logoutSession(): Promise<void> {
+  await apiFetch<void>("/api/auth/logout", { method: "POST" }, false);
+}

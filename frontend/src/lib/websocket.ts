@@ -3,13 +3,14 @@
 export function wsUrl(roomId: string): string {
   const token = getToken();
   const base = import.meta.env.VITE_WS_URL;
+  const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
 
   if (base) {
-    return `${base}/ws/${encodeURIComponent(roomId)}?token=${encodeURIComponent(token ?? "")}`;
+    return `${base}/ws/${encodeURIComponent(roomId)}${tokenQuery}`;
   }
 
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/ws/${encodeURIComponent(roomId)}?token=${encodeURIComponent(token ?? "")}`;
+  return `${protocol}//${window.location.host}/ws/${encodeURIComponent(roomId)}${tokenQuery}`;
 }
 
 export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "reconnecting" | "error";
@@ -79,4 +80,3 @@ export function connectWebSocket(
     },
   };
 }
-

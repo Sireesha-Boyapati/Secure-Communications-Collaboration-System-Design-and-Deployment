@@ -21,7 +21,13 @@ class AuthService:
         email = email.strip().lower()
         code = code.strip()
 
-        if not await otp_repo.verify(email, code):
+        ok, reason = await otp_repo.verify(email, code)
+        if not ok:
+            if reason == "locked":
+                raise AuthenticationError(
+                    "Too many failed attempts. Request a new verification code.",
+                    code="otp_locked",
+                )
             raise AuthenticationError("Invalid or expired OTP code", code="invalid_otp")
 
         user = await user_repo.find_by_email(email)
